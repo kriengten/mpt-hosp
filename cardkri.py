@@ -98,7 +98,8 @@ def readcard():
     f1.close
     print "Command8: %02X %02X" % (sw1, sw2)
 
-from Tkinter import *
+#from Tkinter import *
+from Tkinter import Tk, Button, Frame, Entry,Label, END
 from smartcard.System import readers
 import binascii
 
