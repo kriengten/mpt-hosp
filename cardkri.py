@@ -2,6 +2,9 @@
 #this code is develop follow jane code for opensource user and programmer
 # 2018-07-18 (Y-m-d)
 # apt-get install pcscd python-pyscard
+from reportlab.pdfgen import canvas
+import subprocess, sys
+
 
 def xyz():
     global a
@@ -92,11 +95,22 @@ def readcard():
         print unicode(chr(d),"tis-620"),
     print
     kid.append(":")
+    
     f1 = open('./kriid.txt','w+')
     for item in kid:
         f1.write("%s" %item)
     f1.close
     print "Command8: %02X %02X" % (sw1, sw2)
+
+def printkri():
+#from reportlab.pdfgen import canvas
+        c = canvas.Canvas("hello.pdf")
+        c.drawString(100,750,"Welcome to Reportlab!")
+        c.save()
+#import subprocess, sys
+        opener ="open" if sys.platform == "darwin" else "xdg-open"
+        subprocess.call([opener, "hello.pdf"])
+
 
 #from Tkinter import *
 from Tkinter import Tk, Button, Frame, Entry,Label, END
@@ -109,7 +123,8 @@ Label(root,text="Enter your name").grid(row=7,column=1) #Creating label
 a=Entry(root)           #creating entry box
 #a.grid(row=1,column=8)
 a.grid(row=7,column=8)
-Button(root,text="OK",command=xyz).grid(row=4,column=1)
+Button(root,text="OK",command=xyz).grid(row=4,column=5)
 Button(root,text="write id card data to file",command=readcard).grid(row=1,column=1)
+Button(root,text="print pdf",command=printkri).grid(row=1,column=6)
 
 root.mainloop() 
