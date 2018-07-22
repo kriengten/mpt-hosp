@@ -1,10 +1,14 @@
 #! /usr/bin/env python
+# -*- coding: utf-8 -*-
 #this code is develop follow jane code for opensource user and programmer
 # 2018-07-18 (Y-m-d)
 # apt-get install pcscd python-pyscard
 from reportlab.pdfgen import canvas
 import subprocess, sys
+from reportlab.pdfbase import pdfmetrics
+from reportlab.pdfbase.ttfonts import TTFont
 
+pdfmetrics.registerFont(TTFont('THSarabunNew','THSarabunNew.ttf'))
 
 def xyz():
     global a
@@ -98,6 +102,7 @@ def readcard():
     
     f1 = open('./kriid.txt','w+')
     for item in kid:
+#        f1.write("%s" %item.strip())
         f1.write("%s" %item)
     f1.close
     print "Command8: %02X %02X" % (sw1, sw2)
@@ -105,7 +110,43 @@ def readcard():
 def printkri():
 #from reportlab.pdfgen import canvas
         c = canvas.Canvas("hello.pdf")
-        c.drawString(100,750,"Welcome to Reportlab!")
+        c.setFont('THSarabunNew', 16)
+        with open('./kriid.txt', 'r') as myfile:
+            data=myfile.readline()
+            list=data.split(":")
+            word=list[0]
+        c.drawString(10,800,"ID บัตรประชาชน :")
+        c.drawString(150,800,list[0])
+        c.drawString(10,750,"ชื่อ - นามสกุล :")
+        words = list[1].split("#")
+        uniline0 = unicode(words[0],'cp874')
+        uniline1 = unicode(words[1],'cp874')
+        uniline2 = unicode(words[3],'cp874')
+        uniline22 = uniline2.split()
+        uniline6 = unicode(words[6],'cp874')
+        uniline66 = uniline6.split()
+        c.drawString(150,750,uniline0+" "+uniline1+" "+uniline22[0])
+        c.drawString(10,700,"วันเดือนปีเกิด(YYYYMMDD) :")
+        birth = uniline66[1]
+        c.drawString(150,700,birth[0:8])
+        c.drawString(10,650,"เพศ :")
+        sex1 = birth[-1]
+        if sex1 == '1':
+            sex = "ชาย"
+        if sex1 == '2':
+            sex = "หญิง"
+        
+        c.drawString(150,650,sex)
+        c.drawString(10,600,"ที่อยู่ :")
+        words = list[2].split("#")
+        uniline0 = unicode(words[0],'cp874')
+        uniline1 = unicode(words[1],'cp874')
+        uniline2 = unicode(words[5],'cp874')
+        uniline3 = unicode(words[6],'cp874')
+        uniline4 = unicode(words[7],'cp874')
+        c.drawString(150,600,uniline0+" "+uniline1+" "+uniline2+" "+uniline3+" "+uniline4)
+        c.drawString(10,500,"วันหมดอายุ :")
+        c.drawString(150,500,list[3])
         c.save()
 #import subprocess, sys
         opener ="open" if sys.platform == "darwin" else "xdg-open"
@@ -125,6 +166,6 @@ a=Entry(root)           #creating entry box
 a.grid(row=7,column=8)
 Button(root,text="OK",command=xyz).grid(row=4,column=5)
 Button(root,text="write id card data to file",command=readcard).grid(row=1,column=1)
-Button(root,text="print pdf",command=printkri).grid(row=1,column=6)
+Button(root,text="พิมพ์ ใบสมัครงาน",command=printkri).grid(row=1,column=6)
 
 root.mainloop() 
