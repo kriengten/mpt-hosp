@@ -56,7 +56,7 @@ def readcard():
         print chr(d),
     print
 #print kid
-    kid.append(":")
+    kid.append(",")
     print "Command2: %02X %02X" % (sw1, sw2)
  
 # Fullname Thai + Eng + BirthDate + Sex
@@ -70,7 +70,7 @@ def readcard():
         kid.append(chr(d))
         print unicode(chr(d),"tis-620"),
     print
-    kid.append(":")
+    kid.append(",")
     print "Command4: %02X %02X" % (sw1, sw2)
  
 # Address
@@ -84,7 +84,7 @@ def readcard():
         kid.append(chr(d))
         print unicode(chr(d),"tis-620"),
     print
-    kid.append(":")
+    kid.append(",")
     print "Command6: %02X %02X" % (sw1, sw2)
  
 # issue/expire
@@ -98,7 +98,7 @@ def readcard():
         kid.append(chr(d))
         print unicode(chr(d),"tis-620"),
     print
-    kid.append(":")
+    kid.append(",")
     
     f1 = open('./kriid.txt','w+')
     for item in kid:
@@ -113,7 +113,7 @@ def printkri():
         c.setFont('THSarabunNew', 16)
         with open('./kriid.txt', 'r') as myfile:
             data=myfile.readline()
-            list=data.split(":")
+            list=data.split(",")
             word=list[0]
         c.drawString(10,800,"ID บัตรประชาชน :")
         c.drawString(150,800,list[0])
