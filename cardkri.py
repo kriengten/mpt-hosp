@@ -107,6 +107,30 @@ def readcard():
     f1.close
     print "Command8: %02X %02X" % (sw1, sw2)
 
+def copytocsv():
+        with open('./kriid.txt', 'r') as myfile:
+            data=myfile.readline()
+            list=data.split(",")
+            id13=list[0]
+            words = list[1].split("#")
+            pre = words[0]
+            name = words[1]
+            uniline22 = words[3].split()
+            surname = uniline22[0]
+            uniline6 = words[6].split()
+            uniline66 = uniline6[1]
+            birth = uniline66[0:8]
+            sex = uniline66[-1]
+            words = list[2].split("#")
+            address1 = words[0]+words[1]
+            tumbon = words[5]
+            amphur = words[6]
+            province = words[7]
+            f1 = open('./kriid.csv','w+')
+            f1.write(id13+","+pre+name+" "+surname+","+birth+","+sex+","+address1+","+tumbon+","+amphur+","+province)
+            f1.close
+ 
+
 def printkri():
 #from reportlab.pdfgen import canvas
         c = canvas.Canvas("hello.pdf")
@@ -163,9 +187,10 @@ root=Tk()  #It is just a holder
 Label(root,text="Enter your name").grid(row=7,column=1) #Creating label
 a=Entry(root)           #creating entry box
 #a.grid(row=1,column=8)
-a.grid(row=7,column=8)
-Button(root,text="OK",command=xyz).grid(row=4,column=5)
-Button(root,text="write id card data to file",command=readcard).grid(row=1,column=1)
+a.grid(row=7,column=4)
+Button(root,text="OK",command=xyz).grid(row=7,column=6)
+Button(root,text="read idcard to txt",command=readcard).grid(row=1,column=1)
+Button(root,text="copy to csv",command=copytocsv).grid(row=1,column=4)
 Button(root,text="พิมพ์ ใบสมัครงาน",command=printkri).grid(row=1,column=6)
 
 root.mainloop() 
