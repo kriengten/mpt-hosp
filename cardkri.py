@@ -7,6 +7,7 @@ from reportlab.pdfgen import canvas
 import subprocess, sys
 from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
+from tkFileDialog import askopenfilename
 
 pdfmetrics.registerFont(TTFont('THSarabunNew','THSarabunNew.ttf'))
 
@@ -106,6 +107,11 @@ def readcard():
         f1.write("%s" %item)
     f1.close
     print "Command8: %02X %02X" % (sw1, sw2)
+#    copytocsv()
+    sv = StringVar(root,value='เริ่ม อ่านบัตร')
+    a=Entry(root,textvariable=sv)           #creating entry box
+    a.grid(row=5,column=4)
+    print "เริ่ม open smartcard"
 
 def copytocsv():
         with open('./kriid.txt', 'r') as myfile:
@@ -126,10 +132,13 @@ def copytocsv():
             tumbon = words[5]
             amphur = words[6]
             province = words[7]
-            f1 = open('./kriid.csv','w+')
+            f1 = open('../Dropbox/krifoxone/kriid.csv','w+')
             f1.write(id13+","+pre+name+" "+surname+","+birth+","+sex+","+address1+","+tumbon+","+amphur+","+province)
             f1.close
- 
+            sv = StringVar(root,value='copy เรียบร้อย')
+            a=Entry(root,textvariable=sv)           #creating entry box
+            a.grid(row=5,column=4)
+            print "Copy Ready"
 
 def printkri():
 #from reportlab.pdfgen import canvas
@@ -177,18 +186,24 @@ def printkri():
         subprocess.call([opener, "hello.pdf"])
 
 
-#from Tkinter import *
-from Tkinter import Tk, Button, Frame, Entry,Label, END
+from Tkinter import *
+#from Tkinter import Tk, Button, Frame, Entry,Label, END
 from smartcard.System import readers
 import binascii
 
 root=Tk()  #It is just a holder
 
-Label(root,text="Enter your name").grid(row=7,column=1) #Creating label
-a=Entry(root)           #creating entry box
-#a.grid(row=1,column=8)
-a.grid(row=7,column=4)
-Button(root,text="OK",command=xyz).grid(row=7,column=6)
+Label(root,text="test enter").grid(row=10,column=1) #Creating label
+sv = StringVar(root,value='kriengsak')
+a=Entry(root,textvariable=sv)           #creating entry box
+#a.pack()
+#entryText = tk.StringVar()
+#entry = tk.Entry( master, textvariable=entryText )
+#entryText.set( "Hello World" )
+#entry.grid(row=4,column=3) 
+
+a.grid(row=5,column=4)
+Button(root,text="OK",command=xyz).grid(row=10,column=6)
 Button(root,text="read idcard to txt",command=readcard).grid(row=1,column=1)
 Button(root,text="copy to csv",command=copytocsv).grid(row=1,column=4)
 Button(root,text="พิมพ์ ใบสมัครงาน",command=printkri).grid(row=1,column=6)
