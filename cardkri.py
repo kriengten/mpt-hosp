@@ -109,11 +109,41 @@ def readcard():
     print "Command8: %02X %02X" % (sw1, sw2)
 #    copytocsv()
     sv = StringVar(root,value='เริ่ม อ่านบัตร')
+    print "start cardreader"
     a=Entry(root,textvariable=sv)           #creating entry box
     a.grid(row=5,column=4)
-    print "เริ่ม open smartcard"
+#    print "เริ่ม open smartcard"
+    f1 = open('./kriid.txt','r')
+    data=f1.readline()
+    list=data.split(",")
+    id13=list[0]
+    words = list[1].split("#")
+    pre = words[0]
+    name = words[1]
+    uniline22 = words[3].split()
+    surname = uniline22[0]
+    uniline6 = words[6].split()
+    uniline66 = uniline6[1]
+    birth = uniline66[0:8]
+    sex = uniline66[-1]
+    words = list[2].split("#")
+    address1 = words[0]+words[1]
+    tumbon = words[5]
+    amphur = words[6]
+    province = words[7]
+    f1.close
+    f1 = open('../Dropbox/krifoxone/kriid.csv','w+')
+    f1.write(id13+","+pre+name+" "+surname+","+birth+","+sex+","+address1+","+tumbon+","+amphur+","+province)
+    f1.close
+'''
+    sv = StringVar(root,value='copy เรียบร้อย')
+    a=Entry(root,textvariable=sv)           #creating entry box
+    a.grid(row=5,column=4)
+    print "Copy Ready"
+'''
 
 def copytocsv():
+    '''
         with open('./kriid.txt', 'r') as myfile:
             data=myfile.readline()
             list=data.split(",")
@@ -135,10 +165,11 @@ def copytocsv():
             f1 = open('../Dropbox/krifoxone/kriid.csv','w+')
             f1.write(id13+","+pre+name+" "+surname+","+birth+","+sex+","+address1+","+tumbon+","+amphur+","+province)
             f1.close
-            sv = StringVar(root,value='copy เรียบร้อย')
-            a=Entry(root,textvariable=sv)           #creating entry box
-            a.grid(row=5,column=4)
-            print "Copy Ready"
+    '''
+    sv = StringVar(root,value='copy เรียบร้อย')
+    a=Entry(root,textvariable=sv)           #creating entry box
+    a.grid(row=5,column=4)
+    print "Copy Ready"
 
 def printkri():
 #from reportlab.pdfgen import canvas
@@ -181,7 +212,6 @@ def printkri():
         c.drawString(10,500,"วันหมดอายุ :")
         c.drawString(150,500,list[3])
         c.save()
-#import subprocess, sys
         opener ="open" if sys.platform == "darwin" else "xdg-open"
         subprocess.call([opener, "hello.pdf"])
 
@@ -196,16 +226,10 @@ root=Tk()  #It is just a holder
 Label(root,text="test enter").grid(row=10,column=1) #Creating label
 sv = StringVar(root,value='kriengsak')
 a=Entry(root,textvariable=sv)           #creating entry box
-#a.pack()
-#entryText = tk.StringVar()
-#entry = tk.Entry( master, textvariable=entryText )
-#entryText.set( "Hello World" )
-#entry.grid(row=4,column=3) 
-
 a.grid(row=5,column=4)
 Button(root,text="OK",command=xyz).grid(row=10,column=6)
-Button(root,text="read idcard to txt",command=readcard).grid(row=1,column=1)
-Button(root,text="copy to csv",command=copytocsv).grid(row=1,column=4)
+Button(root,text="ใส่ idcard แล้วกดปุ่ม",command=readcard).grid(row=1,column=1)
+Button(root,text="copy ข้อมูล",command=copytocsv).grid(row=1,column=4)
 Button(root,text="พิมพ์ ใบสมัครงาน",command=printkri).grid(row=1,column=6)
 
 root.mainloop() 
