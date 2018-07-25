@@ -128,19 +128,22 @@ def readcard():
     sex = uniline66[-1]
     words = list[2].split("#")
     address1 = words[0]+words[1]
-    tumbon = words[5]
-    amphur = words[6]
-    province = words[7]
+    tumbon0 = words[5]
+#    tumbon = tumbon0.replace("ตำบล","")
+    tumbon = tumbon0[4:30]
+    amphur0 = words[6]
+#    amphur = amphur0.replace("อำเภอ","")
+    amphur = amphur0[5:30]
+    province0 = words[7]
+#    province = province0.replace("จังหวัด","")
+    province = province0[7:30]
+    print province0
+    print province
     f1.close
     f1 = open('../Dropbox/krifoxone/kriid.csv','w+')
     f1.write(id13+","+pre+name+" "+surname+","+birth+","+sex+","+address1+","+tumbon+","+amphur+","+province)
     f1.close
-'''
-    sv = StringVar(root,value='copy เรียบร้อย')
-    a=Entry(root,textvariable=sv)           #creating entry box
-    a.grid(row=5,column=4)
-    print "Copy Ready"
-'''
+
 
 def copytocsv():
     '''
