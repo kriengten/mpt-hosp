@@ -120,6 +120,13 @@ def readcard():
     uniline66 = uniline6[1]
     birth = uniline66[0:8]
     sex = uniline66[-1]
+    if sex=='1':
+        kripre = '1'
+    if sex=='2':
+        if unicode(pre,"tis-620") == u'น.ส.' or unicode(pre,"tis-620") == u'ด.ญ.':
+            kripre='2'
+        else:
+            kripre='3'    
     words = list[2].split("#")
     address1 = words[0]+words[1]
     tumbon0 = words[5]
@@ -132,7 +139,7 @@ def readcard():
     thaiamphur = unicode(amphur0,"tis-620")
     amphur1 = thaiamphur.replace(u'อำเภอ',"")
     amphur = amphur1.encode('tis-620')
-    province0 = words[7]
+    province0 = words[7].strip()
 #    province = province0[7:30]
     print province0
     print unicode(province0,"tis-620")
@@ -143,7 +150,7 @@ def readcard():
     csvfile = '../Dropbox/krifoxone/kriid.csv'
     if os.path.isfile(csvfile):
         f1 = open(csvfile,'w+')
-        f1.write(id13+","+pre+name+" "+surname+","+birth+","+sex+","+address1+","+tumbon+","+amphur+","+province)
+        f1.write(id13+","+pre+name+" "+surname+","+birth+","+sex+","+address1+","+tumbon+","+amphur+","+province+","+name+","+surname+","+kripre)
         f1.close
         sv = StringVar(root,value='เริ่ม อ่านบัตร')
         print "start cardreader"
