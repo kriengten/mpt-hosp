@@ -129,16 +129,22 @@ def readcard():
     words = list[2].split("#")
     address1 = words[0]+words[1]
     tumbon0 = words[5]
-#    tumbon = tumbon0.replace("ตำบล","")
-    tumbon = tumbon0[4:30]
+#    tumbon = tumbon0[4:30]
+    thaitumbon = unicode(tumbon0,"tis-620")
+    tumbon1 = thaitumbon.replace(u'ตำบล',"")
+    tumbon = tumbon1.encode('tis-620')
     amphur0 = words[6]
-#    amphur = amphur0.replace("อำเภอ","")
-    amphur = amphur0[5:30]
+#    amphur = amphur0[5:30]
+    thaiamphur = unicode(amphur0,"tis-620")
+    amphur1 = thaiamphur.replace(u'อำเภอ',"")
+    amphur = amphur1.encode('tis-620')
     province0 = words[7]
-#    province = province0.replace("จังหวัด","")
-    province = province0[7:30]
+#    province = province0[7:30]
     print province0
-    print province
+    print unicode(province0,"tis-620")
+    thaiprovince = unicode(province0,"tis-620")
+    province1 = thaiprovince.replace(u'จังหวัด',"")
+    province = province1.encode('tis-620')
     f1.close
     f1 = open('../Dropbox/krifoxone/kriid.csv','w+')
     f1.write(id13+","+pre+name+" "+surname+","+birth+","+sex+","+address1+","+tumbon+","+amphur+","+province)
