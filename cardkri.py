@@ -4,7 +4,7 @@
 # 2018-07-18 (Y-m-d)
 # apt-get install pcscd python-pyscard
 from reportlab.pdfgen import canvas
-import subprocess, sys
+import subprocess, sys , os
 from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
 from tkFileDialog import askopenfilename
@@ -107,12 +107,6 @@ def readcard():
         f1.write("%s" %item)
     f1.close
     print "Command8: %02X %02X" % (sw1, sw2)
-#    copytocsv()
-    sv = StringVar(root,value='เริ่ม อ่านบัตร')
-    print "start cardreader"
-    a=Entry(root,textvariable=sv)           #creating entry box
-    a.grid(row=5,column=4)
-#    print "เริ่ม open smartcard"
     f1 = open('./kriid.txt','r')
     data=f1.readline()
     list=data.split(",")
@@ -146,9 +140,22 @@ def readcard():
     province1 = thaiprovince.replace(u'จังหวัด',"")
     province = province1.encode('tis-620')
     f1.close
-    f1 = open('../Dropbox/krifoxone/kriid.csv','w+')
-    f1.write(id13+","+pre+name+" "+surname+","+birth+","+sex+","+address1+","+tumbon+","+amphur+","+province)
-    f1.close
+    csvfile = '../Dropbox/krifoxone/kriid.csv'
+    if os.path.isfile(csvfile):
+        f1 = open(csvfile,'w+')
+        f1.write(id13+","+pre+name+" "+surname+","+birth+","+sex+","+address1+","+tumbon+","+amphur+","+province)
+        f1.close
+        sv = StringVar(root,value='เริ่ม อ่านบัตร')
+        print "start cardreader"
+        a=Entry(root,textvariable=sv)           #creating entry box
+        a.grid(row=5,column=4)
+#    print "เริ่ม open smartcard"
+    else:
+        print("ไม่พบ file kriid.csv")
+        sv = StringVar(root,value='เปิด cardkri.py ผิดที่')
+        print "start cardreader"
+        a=Entry(root,textvariable=sv)           #creating entry box
+        a.grid(row=5,column=4)
 
 
 def copytocsv():
