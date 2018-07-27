@@ -8,6 +8,8 @@ import subprocess, sys , os ,MySQLdb ,mysql.connector
 from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
 from tkFileDialog import askopenfilename
+from mysql.connector import MySQLConnection, Error
+from python_mysql_dbconfig import read_db_config
 
 pdfmetrics.registerFont(TTFont('THSarabunNew','THSarabunNew.ttf'))
 
@@ -202,43 +204,58 @@ def copytocsv():
     a=Entry(root,textvariable=sv)           #creating entry box
     a.grid(row=5,column=1)
     print "Copy Ready"
+    time.sleep(100)
 
 def findhn():
-    conn = MySQLdb.connect (host = "192.168.1.252",
+    db_config = read_db_config()
+    print db_config
+    try:
+        print('Connecting to MySQL database...')
+#        conn = MySQLConnection(**db_config)
+        conn = MySQLdb.connect (host = "192.168.1.252",
                         user = "hospital",
                         passwd = "025816226",
                         db = "tikisvn3")
-    cursor = conn.cursor ()
-    myfile = open('./kriid.txt','r')
-    data=myfile.readline()
-    list=data.split(",")
-
-    kid13=list[0]
-    print kid13
-#    print id13
-    cursor.execute ("SELECT hn,name,surname FROM krieng where id13="+kid13)
-#    cursor.execute ("SELECT hn,name,surname FROM krieng where id13='1104200185901'")
+        if conn.is_connected():
+            print('Connection Successful!!!')
+            cursor = conn.cursor ()
+            myfile = open('./kriid.txt','r')
+            data=myfile.readline()
+            list=data.split(",")
+            kid13=list[0]
+            print kid13
+            cursor.execute ("SELECT hn,name,surname FROM krieng where id13="+kid13)
+            row = cursor.fetchone ()
 #cursor.execute ("SELECT VERSION()")
-    row = cursor.fetchone ()
 #    arow = row[0]
 #    if bool(arow and arow.strip()):
-#        sv2 = StringVar(root,value="ไม่พบเลขid13")
-#        aa=Entry(root,textvariable=sv2)           #creating entry box
-#        aa.grid(row=5,column=6)
-#        print "ไม่พบเลขid13"
 #    else:
-    khn = row[0]
-    print "HN =:", row[0]
-    cursor.close ()
-    conn.close ()
-    print "aaa"
-    sv2 = StringVar(root,value=khn)
-    aa=Entry(root,textvariable=sv2)           #creating entry box
-    aa.grid(row=5,column=6)
-    print khn
+            khn = row[0]
+            print "HN =:", row[0]
+            cursor.close ()
+            conn.close ()
+            print "aaa"
+            sv2 = StringVar(root,value=khn)
+            aa=Entry(root,textvariable=sv2)           #creating entry box
+            aa.grid(row=5,column=6)
+            print khn
+        else:
+            print('connection not successful')
+#    except MySQLdb.connector.Error as e:
+    except MySQLdb.Error as e:
+        print (e)
+        sv2 = StringVar(root,value="ไม่สามารถเชื่อม mysql ได้")
+        aa=Entry(root,textvariable=sv2)           #creating entry box
+        aa.grid(row=5,column=6)
+        print "ไม่สามารถเชื่อม mysql ได้"
+    except :
+        print("Unknow error occured")
+#    finally:
+#        conn.close()
+#        print('Connection closed.')
+
 
 def printkri():
-#from reportlab.pdfgen import canvas
         c = canvas.Canvas("hello.pdf")
         c.setFont('THSarabunNew', 16)
         with open('./kriid.txt', 'r') as myfile:
