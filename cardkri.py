@@ -4,7 +4,7 @@
 # 2018-07-18 (Y-m-d)
 # apt-get install pcscd python-pyscard
 from reportlab.pdfgen import canvas
-import subprocess, sys , os
+import subprocess, sys , os ,MySQLdb ,mysql.connector
 from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
 from tkFileDialog import askopenfilename
@@ -156,6 +156,11 @@ def readcard():
         print "start cardreader"
         a=Entry(root,textvariable=sv)           #creating entry box
         a.grid(row=5,column=1)
+        sv2 = StringVar(root,value="HN")
+        aa=Entry(root,textvariable=sv2)           #creating entry box
+        aa.grid(row=5,column=6)
+        print "HN"
+
 #    print "เริ่ม open smartcard"
     else:
         print("ไม่พบ file kriid.csv")
@@ -163,6 +168,10 @@ def readcard():
         print "start cardreader"
         a=Entry(root,textvariable=sv)           #creating entry box
         a.grid(row=5,column=1)
+        sv2 = StringVar(root,value="HN")
+        aa=Entry(root,textvariable=sv2)           #creating entry box
+        aa.grid(row=5,column=6)
+        print "HN"
 
 
 def copytocsv():
@@ -195,10 +204,38 @@ def copytocsv():
     print "Copy Ready"
 
 def findhn():
-    sv = StringVar(root,value='ไม่พบ HN นี้')
-    a=Entry(root,textvariable=sv)           #creating entry box
-    a.grid(row=5,column=6)
-    print "ไม่พบ HN นี้ "
+    conn = MySQLdb.connect (host = "192.168.1.252",
+                        user = "hospital",
+                        passwd = "025816226",
+                        db = "tikisvn3")
+    cursor = conn.cursor ()
+    myfile = open('./kriid.txt','r')
+    data=myfile.readline()
+    list=data.split(",")
+
+    kid13=list[0]
+    print kid13
+#    print id13
+    cursor.execute ("SELECT hn,name,surname FROM krieng where id13="+kid13)
+#    cursor.execute ("SELECT hn,name,surname FROM krieng where id13='1104200185901'")
+#cursor.execute ("SELECT VERSION()")
+    row = cursor.fetchone ()
+#    arow = row[0]
+#    if bool(arow and arow.strip()):
+#        sv2 = StringVar(root,value="ไม่พบเลขid13")
+#        aa=Entry(root,textvariable=sv2)           #creating entry box
+#        aa.grid(row=5,column=6)
+#        print "ไม่พบเลขid13"
+#    else:
+    khn = row[0]
+    print "HN =:", row[0]
+    cursor.close ()
+    conn.close ()
+    print "aaa"
+    sv2 = StringVar(root,value=khn)
+    aa=Entry(root,textvariable=sv2)           #creating entry box
+    aa.grid(row=5,column=6)
+    print khn
 
 def printkri():
 #from reportlab.pdfgen import canvas
