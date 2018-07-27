@@ -155,14 +155,14 @@ def readcard():
         sv = StringVar(root,value='เริ่ม อ่านบัตร')
         print "start cardreader"
         a=Entry(root,textvariable=sv)           #creating entry box
-        a.grid(row=5,column=4)
+        a.grid(row=5,column=1)
 #    print "เริ่ม open smartcard"
     else:
         print("ไม่พบ file kriid.csv")
         sv = StringVar(root,value='เปิด cardkri.py ผิดที่')
         print "start cardreader"
         a=Entry(root,textvariable=sv)           #creating entry box
-        a.grid(row=5,column=4)
+        a.grid(row=5,column=1)
 
 
 def copytocsv():
@@ -191,8 +191,14 @@ def copytocsv():
     '''
     sv = StringVar(root,value='copy เรียบร้อย')
     a=Entry(root,textvariable=sv)           #creating entry box
-    a.grid(row=5,column=4)
+    a.grid(row=5,column=1)
     print "Copy Ready"
+
+def findhn():
+    sv = StringVar(root,value='ไม่พบ HN นี้')
+    a=Entry(root,textvariable=sv)           #creating entry box
+    a.grid(row=5,column=6)
+    print "ไม่พบ HN นี้ "
 
 def printkri():
 #from reportlab.pdfgen import canvas
@@ -248,9 +254,13 @@ root=Tk()  #It is just a holder
 
 Label(root,text="test enter").grid(row=10,column=1) #Creating label
 sv = StringVar(root,value='kriengsak')
+sv2 = StringVar(root,value='HN')
 a=Entry(root,textvariable=sv)           #creating entry box
-a.grid(row=5,column=4)
-Button(root,text="OK",command=xyz).grid(row=10,column=6)
+a.grid(row=5,column=1)
+aa=Entry(root,textvariable=sv2)           #creating entry box
+aa.grid(row=5,column=6)
+Button(root,text="OK",command=xyz).grid(row=10,column=8)
+Button(root,text="ค้น HN",command=findhn).grid(row=1,column=8)
 Button(root,text="ใส่ idcard แล้วกดปุ่ม",command=readcard).grid(row=1,column=1)
 Button(root,text="copy ข้อมูล",command=copytocsv).grid(row=1,column=4)
 Button(root,text="พิมพ์ ใบสมัครงาน",command=printkri).grid(row=1,column=6)
