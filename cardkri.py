@@ -225,24 +225,33 @@ def findhn():
         kid13=list[0]
         print kid13
         cursor.execute ("SELECT hn,name,surname FROM krieng where id13='"+kid13+"';")
-        row = cursor.fetchone ()
-    
-        if row is None:
-            print "ไม่พบid13 นี้"
-            sv2 = StringVar(root,value="ไม่พบid13 นี้")
+#        row = cursor.fetchone ()
+        acount = 0
+        while True:
+            row = cursor.fetchone ()
+#            if row is None :   # row ==None
+            if row == None and acount==0:   # row ==None
+                print "ไม่พบid13 นี้"
+                sv2 = StringVar(root,value="ไม่พบid13 นี้")
+                aa=Entry(root,textvariable=sv2)           #creating entry box
+                aa.grid(row=5,column=6)
+                break
+            if row is None and acount>0:   # row ==None
+                print "มีid13 จำนวน"+str(acount)
+                sv2 = StringVar(root,value="มีid13 จำนวน"+str(acount))
+                aa=Entry(root,textvariable=sv2)           #creating entry box
+                aa.grid(row=5,column=6)
+                break
+            
+            khn = row[0]
+            print "HN =:", row[0]
+            cursor.close ()
+            conn.close ()
+            sv2 = StringVar(root,value=khn)
             aa=Entry(root,textvariable=sv2)           #creating entry box
             aa.grid(row=5,column=6)
-#cursor.execute ("SELECT VERSION()")
-#    arow = row[0]
-#    if bool(arow and arow.strip()):
-        khn = row[0]
-        print "HN =:", row[0]
-        cursor.close ()
-        conn.close ()
-        sv2 = StringVar(root,value=khn)
-        aa=Entry(root,textvariable=sv2)           #creating entry box
-        aa.grid(row=5,column=6)
-        print khn
+            print khn+" "+row[1]+" "+row[2]
+            acount += 1
     except MySQLdb.Error as e:
         print (e)
         sv2 = StringVar(root,value="ไม่สามารถเชื่อม mysql ได้")
