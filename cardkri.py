@@ -13,10 +13,6 @@ from python_mysql_dbconfig import read_kri_config
 
 pdfmetrics.registerFont(TTFont('THSarabunNew','THSarabunNew.ttf'))
 
-def xyz():
-    global a
-    print a.get() 
-
 def readcard():
 # Thailand ID Smartcard
 # define the APDUs used in this script
@@ -183,19 +179,6 @@ def copytocsv():
             list=data.split(",")
             id13=list[0]
             words = list[1].split("#")
-            pre = words[0]
-            name = words[1]
-            uniline22 = words[3].split()
-            surname = uniline22[0]
-            uniline6 = words[6].split()
-            uniline66 = uniline6[1]
-            birth = uniline66[0:8]
-            sex = uniline66[-1]
-            words = list[2].split("#")
-            address1 = words[0]+words[1]
-            tumbon = words[5]
-            amphur = words[6]
-            province = words[7]
             f1 = open('../Dropbox/krifoxone/kriid.csv','w+')
             f1.write(id13+","+pre+name+" "+surname+","+birth+","+sex+","+address1+","+tumbon+","+amphur+","+province)
             f1.close
@@ -205,6 +188,89 @@ def copytocsv():
     a.grid(row=5,column=1)
     print "Copy Ready"
     time.sleep(100)
+
+def xyz():
+    global a
+    aaa = aa2.get()
+    print aaa 
+    if len(aaa)<> 13:
+                    print "ใส่เลขไม่ครบ 13 หลัก"
+                    sv2 = StringVar(root,value="ใส่เลขไม่ครบ 13 หลัก")
+                    aa=Entry(root,textvariable=sv2)           #creating entry box
+                    aa.grid(row=5,column=6)
+                    return
+    
+    db_config = read_kri_config()
+    print db_config
+    khn2 = ""
+    try:
+        print('Connecting to MySQL database...')
+#        conn = MySQLConnection(**db_config)
+        conn = MySQLdb.connect (host = "192.168.1.252",
+                        user = "hospital",
+                        passwd = db_config,
+                        db = "tikisvn3")
+        print('Connection Successful!!!')
+        cursor = conn.cursor ()
+        cursor.execute ("SELECT hn,name,surname FROM krieng where trim(xn)<>'old' and id13='"+aaa.strip()+"';")
+        acount = 0
+        while True:
+#            row = cursor.fetchone ()
+            rows = cursor.fetchmany ()
+            if not rows:
+                if acount == 0:
+                    print "ไม่พบid13 นี้"
+                    sv2 = StringVar(root,value="ไม่พบid13 นี้")
+                    aa=Entry(root,textvariable=sv2)           #creating entry box
+                    aa.grid(row=5,column=6)
+                if acount >= 2:
+                    print "มีid13 จำนวน"+str(acount)
+                    sv2 = StringVar(root,value="มีid13 จำนวน"+str(acount))
+                    aa=Entry(root,textvariable=sv2)           #creating entry box
+                    aa.grid(row=5,column=6)
+                break
+            for row in rows:
+#            if row is None :   # row ==None
+                if row == None and acount==0:   # row ==None
+                    print "ไม่พบid13 นี้"
+                    sv2 = StringVar(root,value="aaa ไม่พบid13 นี้")
+                    aa=Entry(root,textvariable=sv2)           #creating entry box
+                    aa.grid(row=5,column=6)
+                    break
+                if row == None and acount>0:   # row ==None
+                    print "มีid13 จำนวน"+str(acount)
+                    sv2 = StringVar(root,value="มีid13 จำนวน"+str(acount))
+                    aa=Entry(root,textvariable=sv2)           #creating entry box
+                    aa.grid(row=5,column=6)
+                    break
+                
+                khn = row[0]
+                khn2 = khn2+","+str(khn)
+                print "HN =:", row[0]
+#                cursor.close ()
+#                conn.close ()
+                sv2 = StringVar(root,value=khn)
+                aa=Entry(root,textvariable=sv2)           #creating entry box
+                aa.grid(row=5,column=6)
+                sv4 = StringVar(root,value=khn2)
+                aa3=Entry(root,textvariable=sv4)           #creating entry box
+                aa3.grid(row=6,column=6)
+# 
+#               
+#  print khn+" "+row[1]+" "+row[2]
+                print khn
+                print u"row[1]"
+                acount += 1
+                print acount
+
+    except MySQLdb.Error as e:
+        print (e)
+        sv2 = StringVar(root,value="ไม่สามารถเชื่อม mysql ได้")
+        aa=Entry(root,textvariable=sv2)           #creating entry box
+        aa.grid(row=5,column=6)
+        print "ไม่สามารถเชื่อม mysql ได้"
+    except :
+        print("Unknow error occured")
 
 def findhn():
     db_config = read_kri_config()
@@ -319,10 +385,17 @@ root=Tk()  #It is just a holder
 Label(root,text="test enter").grid(row=10,column=1) #Creating label
 sv = StringVar(root,value='kriengsak')
 sv2 = StringVar(root,value='HN')
+sv3 = StringVar(root,value='ใส่ id13')
+sv4 = StringVar(root,value='                   ')
 a=Entry(root,textvariable=sv)           #creating entry box
 a.grid(row=5,column=1)
 aa=Entry(root,textvariable=sv2)           #creating entry box
 aa.grid(row=5,column=6)
+aa2=Entry(root,textvariable=sv3)           #creating entry box
+aa2.grid(row=6,column=1)
+aa3=Entry(root,textvariable=sv4)           #creating entry box
+aa3.grid(row=6,column=6)
+
 Button(root,text="OK",command=xyz).grid(row=10,column=8)
 Button(root,text="ค้น HN",command=findhn).grid(row=1,column=8)
 Button(root,text="ใส่ idcard แล้วกดปุ่ม",command=readcard).grid(row=1,column=1)
