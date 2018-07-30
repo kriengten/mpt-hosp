@@ -215,9 +215,10 @@ def xyz():
         cursor.execute ("SELECT hn,name,surname FROM krieng where trim(xn)<>'old' and id13='"+aaa.strip()+"';")
         acount = 0
         while True:
-#            row = cursor.fetchone ()
             rows = cursor.fetchmany ()
             if not rows:
+                cursor.close ()
+                conn.close ()
                 if acount == 0:
                     print "ไม่พบid13 นี้"
                     sv2 = StringVar(root,value="ไม่พบid13 นี้")
@@ -230,34 +231,15 @@ def xyz():
                     aa.grid(row=5,column=6)
                 break
             for row in rows:
-#            if row is None :   # row ==None
-                if row == None and acount==0:   # row ==None
-                    print "ไม่พบid13 นี้"
-                    sv2 = StringVar(root,value="aaa ไม่พบid13 นี้")
-                    aa=Entry(root,textvariable=sv2)           #creating entry box
-                    aa.grid(row=5,column=6)
-                    break
-                if row == None and acount>0:   # row ==None
-                    print "มีid13 จำนวน"+str(acount)
-                    sv2 = StringVar(root,value="มีid13 จำนวน"+str(acount))
-                    aa=Entry(root,textvariable=sv2)           #creating entry box
-                    aa.grid(row=5,column=6)
-                    break
-                
                 khn = row[0]
                 khn2 = khn2+","+str(khn)
                 print "HN =:", row[0]
-#                cursor.close ()
-#                conn.close ()
                 sv2 = StringVar(root,value=khn)
                 aa=Entry(root,textvariable=sv2)           #creating entry box
                 aa.grid(row=5,column=6)
                 sv4 = StringVar(root,value=khn2)
                 aa3=Entry(root,textvariable=sv4)           #creating entry box
                 aa3.grid(row=6,column=6)
-# 
-#               
-#  print khn+" "+row[1]+" "+row[2]
                 print khn
                 print u"row[1]"
                 acount += 1
@@ -275,6 +257,7 @@ def xyz():
 def findhn():
     db_config = read_kri_config()
     print db_config
+    khn2 = ""
     try:
         print('Connecting to MySQL database...')
 #        conn = MySQLConnection(**db_config)
@@ -282,7 +265,6 @@ def findhn():
                         user = "hospital",
                         passwd = db_config,
                         db = "tikisvn3")
-#        if conn.is_connected():
         print('Connection Successful!!!')
         cursor = conn.cursor ()
         myfile = open('./kriid.txt','r')
@@ -291,32 +273,38 @@ def findhn():
         kid13=list[0]
         print kid13
         cursor.execute ("SELECT hn,name,surname FROM krieng where id13='"+kid13+"';")
-#        row = cursor.fetchone ()
         acount = 0
         while True:
-            row = cursor.fetchone ()
-#            if row is None :   # row ==None
-            if row == None and acount==0:   # row ==None
-                print "ไม่พบid13 นี้"
-                sv2 = StringVar(root,value="ไม่พบid13 นี้")
+#            row = cursor.fetchone ()
+            rows = cursor.fetchmany ()
+            if not rows:
+                cursor.close ()
+                conn.close ()
+                if acount == 0:
+                    print "ไม่พบid13 นี้"
+                    sv2 = StringVar(root,value="ไม่พบid13 นี้")
+                    aa=Entry(root,textvariable=sv2)           #creating entry box
+                    aa.grid(row=5,column=6)
+                if acount >= 2:
+                    print "มีid13 จำนวน"+str(acount)
+                    sv2 = StringVar(root,value="มีid13 จำนวน"+str(acount))
+                    aa=Entry(root,textvariable=sv2)           #creating entry box
+                    aa.grid(row=5,column=6)
+                break
+            for row in rows:
+#            if row is None and acount>0:   # row ==None
+                khn = row[0]
+                khn2 = khn2+","+str(khn)
+                print "HN =:", row[0]
+                sv2 = StringVar(root,value=khn)
                 aa=Entry(root,textvariable=sv2)           #creating entry box
                 aa.grid(row=5,column=6)
-                break
-            if row is None and acount>0:   # row ==None
-                print "มีid13 จำนวน"+str(acount)
-                sv2 = StringVar(root,value="มีid13 จำนวน"+str(acount))
-                aa=Entry(root,textvariable=sv2)           #creating entry box
-                aa.grid(row=5,column=6)
-                break
-            
-            khn = row[0]
-            print "HN =:", row[0]
-            cursor.close ()
-            conn.close ()
-            sv2 = StringVar(root,value=khn)
-            aa=Entry(root,textvariable=sv2)           #creating entry box
-            aa.grid(row=5,column=6)
-            print khn+" "+row[1]+" "+row[2]
+                sv4 = StringVar(root,value=khn2)
+                aa3=Entry(root,textvariable=sv4)           #creating entry box
+                aa3.grid(row=6,column=6)
+                print khn
+                print row[1]
+#            +" "+row[2]
             acount += 1
     except MySQLdb.Error as e:
         print (e)
@@ -374,6 +362,8 @@ def printkri():
         opener ="open" if sys.platform == "darwin" else "xdg-open"
         subprocess.call([opener, "hello.pdf"])
 
+def genqrcode():
+    print "hi hi hi "
 
 from Tkinter import *
 #from Tkinter import Tk, Button, Frame, Entry,Label, END
@@ -401,5 +391,6 @@ Button(root,text="ค้น HN",command=findhn).grid(row=1,column=8)
 Button(root,text="ใส่ idcard แล้วกดปุ่ม",command=readcard).grid(row=1,column=1)
 Button(root,text="copy ข้อมูล",command=copytocsv).grid(row=1,column=4)
 Button(root,text="พิมพ์ ใบสมัครงาน",command=printkri).grid(row=1,column=6)
+Button(root,text="Gen QRcode",command=genqrcode).grid(row=15,column=1)
 
 root.mainloop() 
