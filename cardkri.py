@@ -10,11 +10,12 @@ from reportlab.pdfbase.ttfonts import TTFont
 from tkFileDialog import askopenfilename
 #from mysql.connector import MySQLConnection, Error
 from python_mysql_dbconfig import read_kri_config
-
+#from smartcard.util import HexListToBinString, toHexString, toBytes
 pdfmetrics.registerFont(TTFont('THSarabunNew','THSarabunNew.ttf'))
 db_config = read_kri_config()
 
 def readcard():
+#    global hextobin,Photo
     initkri()
 # Thailand ID Smartcard
 # define the APDUs used in this script
@@ -32,6 +33,27 @@ def readcard():
 # issue/expire
     COMMAND7 = [0x80, 0xb0, 0x01, 0x67, 0x02, 0x00, 0x12]
     COMMAND8 = [0x00, 0xc0, 0x00, 0x00, 0x12]
+# Photo_Part1-20
+    CMD_PHOTO1 = [0x80, 0xb0, 0x01, 0x7B, 0x02, 0x00, 0xFF]
+    CMD_PHOTO2 = [0x80, 0xb0, 0x02, 0x7A, 0x02, 0x00, 0xFF]
+    CMD_PHOTO3 = [0x80, 0xb0, 0x03, 0x79, 0x02, 0x00, 0xFF]
+    CMD_PHOTO4 = [0x80, 0xb0, 0x04, 0x78, 0x02, 0x00, 0xFF]
+    CMD_PHOTO5 = [0x80, 0xb0, 0x05, 0x77, 0x02, 0x00, 0xFF]
+    CMD_PHOTO6 = [0x80, 0xb0, 0x06, 0x76, 0x02, 0x00, 0xFF]
+    CMD_PHOTO7 = [0x80, 0xb0, 0x07, 0x75, 0x02, 0x00, 0xFF]
+    CMD_PHOTO8 = [0x80, 0xb0, 0x08, 0x74, 0x02, 0x00, 0xFF]
+    CMD_PHOTO9 = [0x80, 0xb0, 0x09, 0x73, 0x02, 0x00, 0xFF]
+    CMD_PHOTO10 = [0x80, 0xb0, 0x0A, 0x72, 0x02, 0x00, 0xFF]
+    CMD_PHOTO11 = [0x80, 0xb0, 0x0B, 0x71, 0x02, 0x00, 0xFF]
+    CMD_PHOTO12 = [0x80, 0xb0, 0x0C, 0x70, 0x02, 0x00, 0xFF]
+    CMD_PHOTO13 = [0x80, 0xb0, 0x0D, 0x6F, 0x02, 0x00, 0xFF]
+    CMD_PHOTO14 = [0x80, 0xb0, 0x0E, 0x6E, 0x02, 0x00, 0xFF]
+    CMD_PHOTO15 = [0x80, 0xb0, 0x0F, 0x6D, 0x02, 0x00, 0xFF]
+    CMD_PHOTO16 = [0x80, 0xb0, 0x10, 0x6C, 0x02, 0x00, 0xFF]
+    CMD_PHOTO17 = [0x80, 0xb0, 0x11, 0x6B, 0x02, 0x00, 0xFF]
+    CMD_PHOTO18 = [0x80, 0xb0, 0x12, 0x6A, 0x02, 0x00, 0xFF]
+    CMD_PHOTO19 = [0x80, 0xb0, 0x13, 0x69, 0x02, 0x00, 0xFF]
+    CMD_PHOTO20 = [0x80, 0xb0, 0x14, 0x68, 0x02, 0x00, 0xFF]
 # get all the available readers
     r = readers()
     print "Available readers:", r
@@ -52,6 +74,7 @@ def readcard():
     print data
     print "testkri %s" % (data)
     kid = []
+    kid2= []
     for d in data:
         kid.append(chr(d))
         print chr(d),
@@ -100,13 +123,89 @@ def readcard():
         print unicode(chr(d),"tis-620"),
     print
     kid.append(",")
-    
     f1 = open('./kriid.txt','w+')
     for item in kid:
 #        f1.write("%s" %item.strip())
         f1.write("%s" %item)
     f1.close
     print "Command8: %02X %02X" % (sw1, sw2)
+# photo
+    photo = []
+    data, sw1, sw2 = connection.transmit(CMD_PHOTO1)
+    print "Command0120: %02X %02X" % (sw1, sw2)
+    photo += data
+    data, sw1, sw2 = connection.transmit(CMD_PHOTO2)
+    print "Command0220: %02X %02X" % (sw1, sw2)
+    photo += data
+    data, sw1, sw2 = connection.transmit(CMD_PHOTO3)
+    print "Command0320: %02X %02X" % (sw1, sw2)
+    photo += data
+    data, sw1, sw2 = connection.transmit(CMD_PHOTO4)
+    print "Command0420: %02X %02X" % (sw1, sw2)
+    photo += data
+    data, sw1, sw2 = connection.transmit(CMD_PHOTO5)
+    print "Command0520: %02X %02X" % (sw1, sw2)
+    photo += data
+    data, sw1, sw2 = connection.transmit(CMD_PHOTO6)
+    print "Command0620: %02X %02X" % (sw1, sw2)
+    photo += data
+    data, sw1, sw2 = connection.transmit(CMD_PHOTO7)
+    print "Command0720: %02X %02X" % (sw1, sw2)
+    photo += data
+    data, sw1, sw2 = connection.transmit(CMD_PHOTO8)
+    print "Command0820: %02X %02X" % (sw1, sw2)
+    photo += data
+    data, sw1, sw2 = connection.transmit(CMD_PHOTO9)
+    print "Command0920: %02X %02X" % (sw1, sw2)
+    photo += data
+    data, sw1, sw2 = connection.transmit(CMD_PHOTO10)
+    print "Command1020: %02X %02X" % (sw1, sw2)
+    photo += data
+    data, sw1, sw2 = connection.transmit(CMD_PHOTO11)
+    print "Command1120: %02X %02X" % (sw1, sw2)
+    photo += data
+    data, sw1, sw2 = connection.transmit(CMD_PHOTO12)
+    print "Command1220: %02X %02X" % (sw1, sw2)
+    photo += data
+    data, sw1, sw2 = connection.transmit(CMD_PHOTO13)
+    print "Command1320: %02X %02X" % (sw1, sw2)
+    photo += data
+    data, sw1, sw2 = connection.transmit(CMD_PHOTO14)
+    print "Command1420: %02X %02X" % (sw1, sw2)
+    photo += data
+    data, sw1, sw2 = connection.transmit(CMD_PHOTO15)
+    print "Command1520: %02X %02X" % (sw1, sw2)
+    photo += data
+    data, sw1, sw2 = connection.transmit(CMD_PHOTO16)
+    print "Command1620: %02X %02X" % (sw1, sw2)
+    photo += data
+    data, sw1, sw2 = connection.transmit(CMD_PHOTO17)
+    print "Command1720: %02X %02X" % (sw1, sw2)
+    photo += data
+    data, sw1, sw2 = connection.transmit(CMD_PHOTO18)
+    print "Command1820: %02X %02X" % (sw1, sw2)
+    photo += data
+    data, sw1, sw2 = connection.transmit(CMD_PHOTO19)
+    print "Command1920: %02X %02X" % (sw1, sw2)
+    photo += data
+    data, sw1, sw2 = connection.transmit(CMD_PHOTO20)
+    print "Command2020: %02X %02X" % (sw1, sw2)
+    photo += data
+    print photo 
+#    data = HexListToBinString(photo)
+#    data = hextobin(photo)
+#    aaabbb = "kriengsak"
+    data = hex2bin(photo)
+    print data
+#    f = open(cid + ".jpg", "wb")
+    f = open("photoid13.jpg", "wb")
+    f.write(data)
+#    f.write(photo)
+    f.close
+    f = open("photoid132.jpg", "wb")
+#    f.write(photo)
+    f.close
+
     f1 = open('./kriid.txt','r')
     data=f1.readline()
     list=data.split(",")
@@ -488,6 +587,18 @@ def findhn2() :
 
 def genqrcode():
     print "hi hi hi "
+
+def hex2bin(str):
+   bin = ['0000','0001','0010','0011',
+         '0100','0101','0110','0111',
+         '1000','1001','1010','1011',
+         '1100','1101','1110','1111']
+   aa = ''
+#   abc = 'krieng'
+   for i in range(len(str)):
+       aa += bin[atoi(str[i],base=16)]
+   return aa
+
 
 def initkri():
     sv = StringVar(root,value='kriengsak')
