@@ -3,7 +3,7 @@
 #this code is develop follow jane code for opensource user and programmer
 # 2018-07-18 (Y-m-d)
 # apt-get install pcscd python-pyscard
-#from Tkinter import *
+# from Tkinter import *
 from Tkinter import Tk, Button, Frame, Entry,Label,StringVar
 import Tkinter as tk
 #from Tkinter import StringVar
@@ -186,10 +186,12 @@ def readcard():
         aa.grid(row=5,column=6)
         print "HN"
 
-def getData(cmd, req = [0x00, 0xc0, 0x00, 0x00]):
-#	data, sw1, sw2 = connection.transmit(cmd)
-	data, sw1, sw2 = connection.transmit(req + [cmd[-1]])
-	return [data, sw1, sw2]
+#def getData(self,cmd, req = [0x00, 0xc0, 0x00, 0x00]):
+#def getData(cmd, req):
+#	data, sw1, sw2 = self.connection.transmit(cmd)
+#	data, sw1, sw2 = connection.transmit(req + [cmd[-1]])
+#	data, sw1, sw2 = self.connection.transmit(req + [cmd[-1]])
+#	return [data, sw1, sw2]
 
 def photoid13():
 # Reset
@@ -207,46 +209,27 @@ def photoid13():
     COMMAND7 = [0x80, 0xb0, 0x01, 0x67, 0x02, 0x00, 0x12]
     COMMAND8 = [0x00, 0xc0, 0x00, 0x00, 0x12]
 # Photo_Part1-20
+    req1 = [0x00, 0xc0, 0x00, 0x00]
     CMD_PHOTO1 = [0x80, 0xb0, 0x01, 0x7B, 0x02, 0x00, 0xFF]
-    CMD_PHOTO101 = [0x00, 0xc0, 0x00, 0x00, 0xFF]
     CMD_PHOTO2 = [0x80, 0xb0, 0x02, 0x7A, 0x02, 0x00, 0xFF]
-    CMD_PHOTO202 = [0x00, 0xc0, 0x00, 0x00, 0xFF]
     CMD_PHOTO3 = [0x80, 0xb0, 0x03, 0x79, 0x02, 0x00, 0xFF]
-    CMD_PHOTO303 = [0x00, 0xc0, 0x00, 0x00, 0xFF]
     CMD_PHOTO4 = [0x80, 0xb0, 0x04, 0x78, 0x02, 0x00, 0xFF]
-    CMD_PHOTO404 = [0x00, 0xc0, 0x00, 0x00, 0xFF]
     CMD_PHOTO5 = [0x80, 0xb0, 0x05, 0x77, 0x02, 0x00, 0xFF]
-    CMD_PHOTO505 = [0x00, 0xc0, 0x00, 0x00, 0xFF]
     CMD_PHOTO6 = [0x80, 0xb0, 0x06, 0x76, 0x02, 0x00, 0xFF]
-    CMD_PHOTO606 = [0x00, 0xc0, 0x00, 0x00, 0xFF]
     CMD_PHOTO7 = [0x80, 0xb0, 0x07, 0x75, 0x02, 0x00, 0xFF]
-    CMD_PHOTO707 = [0x00, 0xc0, 0x00, 0x00, 0xFF]
     CMD_PHOTO8 = [0x80, 0xb0, 0x08, 0x74, 0x02, 0x00, 0xFF]
-    CMD_PHOTO808 = [0x00, 0xc0, 0x00, 0x00, 0xFF]
     CMD_PHOTO9 = [0x80, 0xb0, 0x09, 0x73, 0x02, 0x00, 0xFF]
-    CMD_PHOTO909 = [0x00, 0xc0, 0x00, 0x00, 0xFF]
     CMD_PHOTO10 = [0x80, 0xb0, 0x0A, 0x72, 0x02, 0x00, 0xFF]
-    CMD_PHOTO1010 = [0x00, 0xc0, 0x00, 0x00, 0xFF]
     CMD_PHOTO11 = [0x80, 0xb0, 0x0B, 0x71, 0x02, 0x00, 0xFF]
-    CMD_PHOTO1111 = [0x00, 0xc0, 0x00, 0x00, 0xFF]
     CMD_PHOTO12 = [0x80, 0xb0, 0x0C, 0x70, 0x02, 0x00, 0xFF]
-    CMD_PHOTO1212 = [0x00, 0xc0, 0x00, 0x00, 0xFF]
     CMD_PHOTO13 = [0x80, 0xb0, 0x0D, 0x6F, 0x02, 0x00, 0xFF]
-    CMD_PHOTO1313 = [0x00, 0xc0, 0x00, 0x00, 0xFF]
     CMD_PHOTO14 = [0x80, 0xb0, 0x0E, 0x6E, 0x02, 0x00, 0xFF]
-    CMD_PHOTO1414 = [0x00, 0xc0, 0x00, 0x00, 0xFF]
     CMD_PHOTO15 = [0x80, 0xb0, 0x0F, 0x6D, 0x02, 0x00, 0xFF]
-    CMD_PHOTO1515 = [0x00, 0xc0, 0x00, 0x00, 0xFF]
     CMD_PHOTO16 = [0x80, 0xb0, 0x10, 0x6C, 0x02, 0x00, 0xFF]
-    CMD_PHOTO1616 = [0x00, 0xc0, 0x00, 0x00, 0xFF]
     CMD_PHOTO17 = [0x80, 0xb0, 0x11, 0x6B, 0x02, 0x00, 0xFF]
-    CMD_PHOTO1717 = [0x00, 0xc0, 0x00, 0x00, 0xFF]
     CMD_PHOTO18 = [0x80, 0xb0, 0x12, 0x6A, 0x02, 0x00, 0xFF]
-    CMD_PHOTO1818 = [0x00, 0xc0, 0x00, 0x00, 0xFF]
     CMD_PHOTO19 = [0x80, 0xb0, 0x13, 0x69, 0x02, 0x00, 0xFF]
-    CMD_PHOTO1919 = [0x00, 0xc0, 0x00, 0x00, 0xFF]
     CMD_PHOTO20 = [0x80, 0xb0, 0x14, 0x68, 0x02, 0x00, 0xFF]
-    CMD_PHOTO2020 = [0x00, 0xc0, 0x00, 0x00, 0xFF]
 # get all the available readers
     r = readers()
     print "Available readers:", r
@@ -319,97 +302,73 @@ def photoid13():
     print "Command8: %02X %02X" % (sw1, sw2)
     photo = []
     data, sw1, sw2 = connection.transmit(CMD_PHOTO1)
-    print "photo1: %02X %02X" % (sw1, sw2)
+    data, sw1, sw2 = connection.transmit(req1 + [CMD_PHOTO1[-1]])
     photo += data
-    data, sw1, sw2 = connection.transmit(CMD_PHOTO101)
-    photo += data
-#    photo += getData(CMD_PHOTO1, req)[0]
     data, sw1, sw2 = connection.transmit(CMD_PHOTO2)
-    photo += data
-    data, sw1, sw2 = connection.transmit(CMD_PHOTO202)
+    data, sw1, sw2 = connection.transmit(req1 + [CMD_PHOTO2[-1]])
     photo += data
     data, sw1, sw2 = connection.transmit(CMD_PHOTO3)
-    photo += data
-    data, sw1, sw2 = connection.transmit(CMD_PHOTO303)
+    data, sw1, sw2 = connection.transmit(req1 + [CMD_PHOTO3[-1]])
     photo += data
     data, sw1, sw2 = connection.transmit(CMD_PHOTO4)
-    photo += data
-    data, sw1, sw2 = connection.transmit(CMD_PHOTO404)
+    data, sw1, sw2 = connection.transmit(req1 + [CMD_PHOTO4[-1]])
     photo += data
     data, sw1, sw2 = connection.transmit(CMD_PHOTO5)
-    photo += data
-    data, sw1, sw2 = connection.transmit(CMD_PHOTO505)
+    data, sw1, sw2 = connection.transmit(req1 + [CMD_PHOTO5[-1]])
     photo += data
     data, sw1, sw2 = connection.transmit(CMD_PHOTO6)
-    photo += data
-    data, sw1, sw2 = connection.transmit(CMD_PHOTO606)
+    data, sw1, sw2 = connection.transmit(req1 + [CMD_PHOTO6[-1]])
     photo += data
     data, sw1, sw2 = connection.transmit(CMD_PHOTO7)
-    photo += data
-    data, sw1, sw2 = connection.transmit(CMD_PHOTO707)
+    data, sw1, sw2 = connection.transmit(req1 + [CMD_PHOTO7[-1]])
     photo += data
     data, sw1, sw2 = connection.transmit(CMD_PHOTO8)
-    photo += data
-    data, sw1, sw2 = connection.transmit(CMD_PHOTO808)
+    data, sw1, sw2 = connection.transmit(req1 + [CMD_PHOTO8[-1]])
     photo += data
     data, sw1, sw2 = connection.transmit(CMD_PHOTO9)
-    photo += data
-    data, sw1, sw2 = connection.transmit(CMD_PHOTO909)
+    data, sw1, sw2 = connection.transmit(req1 + [CMD_PHOTO9[-1]])
     photo += data
     data, sw1, sw2 = connection.transmit(CMD_PHOTO10)
-    photo += data
-    data, sw1, sw2 = connection.transmit(CMD_PHOTO1010)
+    data, sw1, sw2 = connection.transmit(req1 + [CMD_PHOTO10[-1]])
     photo += data
     data, sw1, sw2 = connection.transmit(CMD_PHOTO11)
-    photo += data
-    data, sw1, sw2 = connection.transmit(CMD_PHOTO1111)
+    data, sw1, sw2 = connection.transmit(req1 + [CMD_PHOTO11[-1]])
     photo += data
     data, sw1, sw2 = connection.transmit(CMD_PHOTO12)
-    photo += data
-    data, sw1, sw2 = connection.transmit(CMD_PHOTO1212)
+    data, sw1, sw2 = connection.transmit(req1 + [CMD_PHOTO12[-1]])
     photo += data
     data, sw1, sw2 = connection.transmit(CMD_PHOTO13)
-    photo += data
-    data, sw1, sw2 = connection.transmit(CMD_PHOTO1313)
+    data, sw1, sw2 = connection.transmit(req1 + [CMD_PHOTO13[-1]])
     photo += data
     data, sw1, sw2 = connection.transmit(CMD_PHOTO14)
-    photo += data
-    data, sw1, sw2 = connection.transmit(CMD_PHOTO1414)
+    data, sw1, sw2 = connection.transmit(req1 + [CMD_PHOTO14[-1]])
     photo += data
     data, sw1, sw2 = connection.transmit(CMD_PHOTO15)
-    photo += data
-    data, sw1, sw2 = connection.transmit(CMD_PHOTO1515)
+    data, sw1, sw2 = connection.transmit(req1 + [CMD_PHOTO15[-1]])
     photo += data
     data, sw1, sw2 = connection.transmit(CMD_PHOTO16)
-    photo += data
-    data, sw1, sw2 = connection.transmit(CMD_PHOTO1616)
+    data, sw1, sw2 = connection.transmit(req1 + [CMD_PHOTO16[-1]])
     photo += data
     data, sw1, sw2 = connection.transmit(CMD_PHOTO17)
-    photo += data
-    data, sw1, sw2 = connection.transmit(CMD_PHOTO1717)
+    data, sw1, sw2 = connection.transmit(req1 + [CMD_PHOTO17[-1]])
     photo += data
     data, sw1, sw2 = connection.transmit(CMD_PHOTO18)
-    photo += data
-    data, sw1, sw2 = connection.transmit(CMD_PHOTO1818)
+    data, sw1, sw2 = connection.transmit(req1 + [CMD_PHOTO18[-1]])
     photo += data
     data, sw1, sw2 = connection.transmit(CMD_PHOTO19)
-    photo += data
-    data, sw1, sw2 = connection.transmit(CMD_PHOTO1919)
+    data, sw1, sw2 = connection.transmit(req1 + [CMD_PHOTO19[-1]])
     photo += data
     data, sw1, sw2 = connection.transmit(CMD_PHOTO20)
+    data, sw1, sw2 = connection.transmit(req1 + [CMD_PHOTO20[-1]])
     photo += data
-    data, sw1, sw2 = connection.transmit(CMD_PHOTO2020)
-    photo += data
-#    print photo 
     dataa1 = HexListToBinString(photo)
-    f = open("photoid13.jpg", "wb")
-    f.write(dataa1)
-    f.close
-#    f = open(cid + ".jpg", "wb")
     f1 = open('./kriid.txt','r')
     data=f1.readline()
     list=data.split(",")
     id13=list[0]
+    f = open(id13+".jpg", "wb")
+    f.write(dataa1)
+    f.close
     words = list[1].split("#")
     pre = words[0]
     name = words[1]
@@ -890,7 +849,7 @@ Button(root,text="พิมพ์ ใบสมัครงาน",command=printk
 Button(root,text="ค้น ID13",command=searchid13).grid(row=6,column=4)
 Button(root,text="ค้น HN",command=searchhn).grid(row=12,column=4)
 Button(root,text="แก้ไข id13 จากcardหลังค้นHN",command=copytocsv).grid(row=12,column=8)
-Button(root,text="load photo",command=photoid13).grid(row=15,column=1)
+Button(root,text="load photo+id13",command=photoid13).grid(row=15,column=1)
 Button(root,text="Gen QRcode",command=img).grid(row=15,column=4)
 
 root.mainloop() 
