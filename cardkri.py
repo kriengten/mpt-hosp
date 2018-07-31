@@ -3,6 +3,13 @@
 #this code is develop follow jane code for opensource user and programmer
 # 2018-07-18 (Y-m-d)
 # apt-get install pcscd python-pyscard
+#from Tkinter import *
+from Tkinter import Tk, Button, Frame, Entry,Label,StringVar
+import Tkinter as tk
+#from Tkinter import StringVar
+from PIL import ImageTk, Image
+from smartcard.System import readers
+import binascii
 from reportlab.pdfgen import canvas
 import subprocess, sys , os ,MySQLdb ,mysql.connector
 from reportlab.pdfbase import pdfmetrics
@@ -11,14 +18,174 @@ from tkFileDialog import askopenfilename
 #from mysql.connector import MySQLConnection, Error
 from python_mysql_dbconfig import read_kri_config
 #from smartcard.util import HexListToBinString, toHexString, toBytes
+from picturekri import kriengten
+
 pdfmetrics.registerFont(TTFont('THSarabunNew','THSarabunNew.ttf'))
 db_config = read_kri_config()
 
 def readcard():
-#    global hextobin,Photo
     initkri()
-# Thailand ID Smartcard
-# define the APDUs used in this script
+# Reset
+    SELECT = [0x00, 0xA4, 0x04, 0x00, 0x08, 0xA0, 0x00, 0x00, 0x00, 0x54, 0x48, 0x00, 0x01]
+# CID
+    COMMAND1 = [0x80, 0xb0, 0x00, 0x04, 0x02, 0x00, 0x0d]
+    COMMAND2 = [0x00, 0xc0, 0x00, 0x00, 0x0d]
+# Fullname Thai + Eng + BirthDate + Sex
+    COMMAND3 = [0x80, 0xb0, 0x00, 0x11, 0x02, 0x00, 0xd1]
+    COMMAND4 = [0x00, 0xc0, 0x00, 0x00, 0xd1]
+# Address
+    COMMAND5 = [0x80, 0xb0, 0x15, 0x79, 0x02, 0x00, 0x64]
+    COMMAND6 = [0x00, 0xc0, 0x00, 0x00, 0x64]
+# issue/expire
+    COMMAND7 = [0x80, 0xb0, 0x01, 0x67, 0x02, 0x00, 0x12]
+    COMMAND8 = [0x00, 0xc0, 0x00, 0x00, 0x12]
+# get all the available readers
+    r = readers()
+    print "Available readers:", r
+    reader = r[0]
+    print "Using:", reader
+    connection = reader.createConnection()
+    connection.connect()
+# Reset
+    data, sw1, sw2 = connection.transmit(SELECT)
+    print data
+    print "Select Applet: %02X %02X" % (sw1, sw2)
+    data, sw1, sw2 = connection.transmit(COMMAND1)
+    print data
+    print "Command1: %02X %02X" % (sw1, sw2)
+#print "Command1 kri : %02X " % (sw1)
+# CID
+    data, sw1, sw2 = connection.transmit(COMMAND2)
+    print data
+    print "testkri %s" % (data)
+    kid = []
+    for d in data:
+        kid.append(chr(d))
+        print chr(d),
+    print
+#print kid
+    kid.append(",")
+    print "Command2: %02X %02X" % (sw1, sw2)
+ 
+# Fullname Thai + Eng + BirthDate + Sex
+    data, sw1, sw2 = connection.transmit(COMMAND3)
+    print data
+    print "Command3: %02X %02X" % (sw1, sw2)
+ 
+    data, sw1, sw2 = connection.transmit(COMMAND4)
+    print data
+    for d in data:
+        kid.append(chr(d))
+        print unicode(chr(d),"tis-620"),
+    print
+    kid.append(",")
+    print "Command4: %02X %02X" % (sw1, sw2)
+ 
+# Address
+    data, sw1, sw2 = connection.transmit(COMMAND5)
+    print data
+    print "Command5: %02X %02X" % (sw1, sw2)
+ 
+    data, sw1, sw2 = connection.transmit(COMMAND6)
+    print data
+    for d in data:
+        kid.append(chr(d))
+        print unicode(chr(d),"tis-620"),
+    print
+    kid.append(",")
+    print "Command6: %02X %02X" % (sw1, sw2)
+ 
+# issue/expire
+    data, sw1, sw2 = connection.transmit(COMMAND7)
+    print data
+    print "Command7: %02X %02X" % (sw1, sw2)
+ 
+    data, sw1, sw2 = connection.transmit(COMMAND8)
+    print data
+    for d in data:
+        kid.append(chr(d))
+        print unicode(chr(d),"tis-620"),
+    print
+    kid.append(",")
+    f1 = open('./kriid.txt','w+')
+    for item in kid:
+#        f1.write("%s" %item.strip())
+        f1.write("%s" %item)
+    f1.close
+    print "Command8: %02X %02X" % (sw1, sw2)
+    f1 = open('./kriid.txt','r')
+    data=f1.readline()
+    list=data.split(",")
+    id13=list[0]
+    words = list[1].split("#")
+    pre = words[0]
+    name = words[1]
+    uniline22 = words[3].split()
+    surname = uniline22[0]
+    uniline6 = words[6].split()
+    uniline66 = uniline6[1]
+    birth = uniline66[0:8]
+    sex = uniline66[-1]
+    if sex=='1':
+        kripre = '1'
+    if sex=='2':
+        if unicode(pre,"tis-620") == u'น.ส.' or unicode(pre,"tis-620") == u'ด.ญ.':
+            kripre='2'
+        else:
+            kripre='3'    
+    words = list[2].split("#")
+    address1 = words[0]+words[1]
+    tumbon0 = words[5]
+#    tumbon = tumbon0[4:30]
+    thaitumbon = unicode(tumbon0,"tis-620")
+    tumbon1 = thaitumbon.replace(u'ตำบล',"")
+    tumbon = tumbon1.encode('tis-620')
+    amphur0 = words[6]
+#    amphur = amphur0[5:30]
+    thaiamphur = unicode(amphur0,"tis-620")
+    amphur1 = thaiamphur.replace(u'อำเภอ',"")
+    amphur = amphur1.encode('tis-620')
+    province0 = words[7].strip()
+#    province = province0[7:30]
+    print province0
+    print unicode(province0,"tis-620")
+    thaiprovince = unicode(province0,"tis-620")
+    province1 = thaiprovince.replace(u'จังหวัด',"")
+    province = province1.encode('tis-620')
+    f1.close
+    csvfile = '../Dropbox/krifoxone/kriid.csv'
+    if os.path.isfile(csvfile):
+        f1 = open(csvfile,'w+')
+        f1.write(id13+","+pre+name+" "+surname+","+birth+","+sex+","+address1+","+tumbon+","+amphur+","+province+","+name+","+surname+","+kripre)
+        f1.close
+        sv = StringVar(root,value='เริ่ม อ่านบัตร')
+        print "start cardreader"
+        a=Entry(root,textvariable=sv)           #creating entry box
+        a.grid(row=5,column=1)
+        sv1 = StringVar(root,value="HN")
+        aa=Entry(root,textvariable=sv1)           #creating entry box
+        aa.grid(row=5,column=6)
+        print "HN"
+        cardname = pre+name+" "+surname
+        cardname2 = unicode(cardname,'tis-620')
+        Label(root,text=cardname2).grid(row=1,column=8) #Creating label
+        abirth = int(birth)
+        abirth2 = abirth%100
+        abirth3 = abirth/100%100
+        abirth4 = uniline66[0:4]
+        Label(root,text="     "+str(int(abirth4)-543)+"-"+str(abirth3)+"-"+str(abirth2)+"    ").grid(row=5,column=8) #Creating label
+    else:
+        print("ไม่พบ file kriid.csv")
+        sv = StringVar(root,value='เปิด cardkri.py ผิดที่')
+        print "start cardreader"
+        a=Entry(root,textvariable=sv)           #creating entry box
+        a.grid(row=5,column=1)
+        sv1 = StringVar(root,value="HN")
+        aa=Entry(root,textvariable=sv1)           #creating entry box
+        aa.grid(row=5,column=6)
+        print "HN"
+
+def photoid13():
 # Reset
     SELECT = [0x00, 0xA4, 0x04, 0x00, 0x08, 0xA0, 0x00, 0x00, 0x00, 0x54, 0x48, 0x00, 0x01]
 # CID
@@ -74,7 +241,7 @@ def readcard():
     print data
     print "testkri %s" % (data)
     kid = []
-    kid2= []
+#    kid2= []
     for d in data:
         kid.append(chr(d))
         print chr(d),
@@ -130,10 +297,13 @@ def readcard():
     f1.close
     print "Command8: %02X %02X" % (sw1, sw2)
 # photo
+#    photo = bytearray()
     photo = []
+    photo2 = []
     data, sw1, sw2 = connection.transmit(CMD_PHOTO1)
     print "Command0120: %02X %02X" % (sw1, sw2)
     photo += data
+    photo2 += data
     data, sw1, sw2 = connection.transmit(CMD_PHOTO2)
     print "Command0220: %02X %02X" % (sw1, sw2)
     photo += data
@@ -193,17 +363,20 @@ def readcard():
     photo += data
     print photo 
 #    data = HexListToBinString(photo)
-#    data = hextobin(photo)
-#    aaabbb = "kriengsak"
-    data = hex2bin(photo)
-    print data
+#    data2 = hex2bin2('kriengsak')
+#    data2 = hex2bin2(photo2)
+#    data2 = bytearray.fromhex(photo)
+#    data  = bytearray.fromhex(photo2)
+#    data = hex2bin2(photo)
+#    print data
+#    print data2
 #    f = open(cid + ".jpg", "wb")
     f = open("photoid13.jpg", "wb")
-    f.write(data)
+#    f.write(data2)
 #    f.write(photo)
     f.close
     f = open("photoid132.jpg", "wb")
-#    f.write(photo)
+#    f.write(data2)
     f.close
 
     f1 = open('./kriid.txt','r')
@@ -279,6 +452,7 @@ def readcard():
         print "HN"
 
 
+
 def copytocsv():
     '''
         with open('./kriid.txt', 'r') as myfile:
@@ -296,7 +470,7 @@ def copytocsv():
     print "Copy Ready"
 #    time.sleep(100)
 
-def xyz():
+def searchid13():
     global aa2
     aaa = aa2.get()
     print aaa 
@@ -375,7 +549,7 @@ def xyz():
                 acount += 1
                 print acount
 
-    except MySQLdb.Error as e:
+    except Exception as e:
         print (e)
         sv1 = StringVar(root,value="ไม่สามารถเชื่อม mysql ได้")
         aa=Entry(root,textvariable=sv1)           #creating entry box
@@ -384,7 +558,7 @@ def xyz():
     except :
         print("Unknow error occured")
 
-def findhn():
+def copyandfindid13():
 #    db_config = read_kri_config()
     print db_config
     khn2 = ""
@@ -453,7 +627,7 @@ def findhn():
                 print row[1]+" "+row[2]
 #            +" "+row[2]
             acount += 1
-    except MySQLdb.Error as e:
+    except Exception as e:
         print (e)
         sv1 = StringVar(root,value="ไม่สามารถเชื่อม mysql ได้")
         aa=Entry(root,textvariable=sv1)           #creating entry box
@@ -472,7 +646,7 @@ def printkri():
         with open('./kriid.txt', 'r') as myfile:
             data=myfile.readline()
             list=data.split(",")
-            word=list[0]
+#            word=list[0]
         c.drawString(10,800,"ID บัตรประชาชน :")
         c.drawString(150,800,list[0])
         c.drawString(10,750,"ชื่อ - นามสกุล :")
@@ -508,7 +682,7 @@ def printkri():
         opener ="open" if sys.platform == "darwin" else "xdg-open"
         subprocess.call([opener, "hello.pdf"])
 
-def findhn2() :
+def searchhn() :
     global aa7
     aaa = aa7.get()
     if aaa.isdigit():
@@ -576,7 +750,8 @@ def findhn2() :
                 print row[1]+" "+row[2]
                 acount += 1
                 print acount
-    except MySQLdb.Error as e:
+#    except MySQLdb.Error as e:
+    except Exception as e:
         print (e)
         sv1 = StringVar(root,value="ไม่สามารถเชื่อม mysql ได้")
         aa=Entry(root,textvariable=sv1)           #creating entry box
@@ -585,10 +760,19 @@ def findhn2() :
     except :
         print("Unknow error occured")
 
-def genqrcode():
-    print "hi hi hi "
+def hex2bin2(hexval):
+    print hexval
+#    return
+    thelen = len(hexval)*4
+#    binval = bin(int(hexval, 16))[2:]
+    krihex = int(str(hexval).strip(),16)
+    binval = bin(krihex)[2:]
+    while ((len(binval)) < thelen):
+        binval = '0' + binval
+    return binval
 
-def hex2bin(str):
+
+def hex2bin(self,str):
    bin = ['0000','0001','0010','0011',
          '0100','0101','0110','0111',
          '1000','1001','1010','1011',
@@ -621,14 +805,23 @@ def initkri():
     aa6=Entry(root,textvariable=sv6)
     aa6.grid(row=7,column=6)
 
+def img():
+#    c1=kriengten()
+#    c1.openpicture('images.png')
+    img =Image.open('images.png')
+    img.show()
 
-from Tkinter import *
-#from Tkinter import Tk, Button, Frame, Entry,Label, END
-from smartcard.System import readers
-import binascii
 
+#%reset -f
 root=Tk()  #It is just a holder
-#global aa2
+root.title("Mpt Hospital")
+root.resizable(width=True,height=True)
+#root.geometry("300x300")
+#root.configure(background='gray')
+
+#panel = tk.Label(root, image = img)
+#panel.pack(side = "bottom", fill = "both", expand = "yes")
+
 sv = StringVar(root,value='kriengsak')
 a=Entry(root,textvariable=sv)
 a.grid(row=5,column=1)
@@ -638,8 +831,10 @@ aa.grid(row=5,column=6)
 sv2 = StringVar(root,value='ใส่ id13')
 aa2=Entry(root,textvariable=sv2)
 aa2.grid(row=6,column=1)
-sv7 = StringVar(root,value='ใส่ HN: ')
-aa7=Entry(root,textvariable=sv7)
+#sv7 = StringVar()
+#sv7 = StringVar(root,value='ใส่ HN: ')
+sv7 = StringVar(root,value='HN')
+aa7=Entry(root,text="HN",textvariable=sv7)
 aa7.grid(row=12,column=1)
 
 initkri()
@@ -650,11 +845,12 @@ Label(root,text="ชื่อจาก card").grid(row=1,column=8) #Creating lab
 Label(root,text="วันเกิด จาก card").grid(row=5,column=8) #Creating label
 
 Button(root,text="ใส่ idcard แล้วกดปุ่ม",command=readcard).grid(row=1,column=1)
-Button(root,text="copy+id13จากCard",command=findhn).grid(row=1,column=4)
+Button(root,text="copy+id13จากCard",command=copyandfindid13).grid(row=1,column=4)
 Button(root,text="พิมพ์ ใบสมัครงาน",command=printkri).grid(row=1,column=6)
-Button(root,text="ค้น ID13",command=xyz).grid(row=6,column=4)
-Button(root,text="ค้น HN",command=findhn2).grid(row=12,column=4)
+Button(root,text="ค้น ID13",command=searchid13).grid(row=6,column=4)
+Button(root,text="ค้น HN",command=searchhn).grid(row=12,column=4)
 Button(root,text="แก้ไข id13 จากcardหลังค้นHN",command=copytocsv).grid(row=12,column=8)
-Button(root,text="Gen QRcode",command=genqrcode).grid(row=15,column=1)
+Button(root,text="load photo",command=photoid13).grid(row=15,column=1)
+Button(root,text="Gen QRcode",command=img).grid(row=15,column=4)
 
 root.mainloop() 
