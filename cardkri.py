@@ -7,8 +7,9 @@
 from Tkinter import Tk, Button, Frame, Entry,Label,StringVar
 import Tkinter as tk
 #from Tkinter import StringVar
-from PIL import ImageTk, Image
+from PIL import ImageTk, Image ,ImageDraw , ImageFont
 from smartcard.System import readers
+import io
 import binascii
 from reportlab.pdfgen import canvas
 import subprocess, sys , os ,MySQLdb ,mysql.connector
@@ -17,7 +18,7 @@ from reportlab.pdfbase.ttfonts import TTFont
 from tkFileDialog import askopenfilename
 #from mysql.connector import MySQLConnection, Error
 from python_mysql_dbconfig import read_kri_config
-#from smartcard.util import HexListToBinString, toHexString, toBytes
+from smartcard.util import HexListToBinString, toHexString, toBytes
 from picturekri import kriengten
 
 pdfmetrics.registerFont(TTFont('THSarabunNew','THSarabunNew.ttf'))
@@ -185,6 +186,11 @@ def readcard():
         aa.grid(row=5,column=6)
         print "HN"
 
+def getData(cmd, req = [0x00, 0xc0, 0x00, 0x00]):
+#	data, sw1, sw2 = connection.transmit(cmd)
+	data, sw1, sw2 = connection.transmit(req + [cmd[-1]])
+	return [data, sw1, sw2]
+
 def photoid13():
 # Reset
     SELECT = [0x00, 0xA4, 0x04, 0x00, 0x08, 0xA0, 0x00, 0x00, 0x00, 0x54, 0x48, 0x00, 0x01]
@@ -202,25 +208,45 @@ def photoid13():
     COMMAND8 = [0x00, 0xc0, 0x00, 0x00, 0x12]
 # Photo_Part1-20
     CMD_PHOTO1 = [0x80, 0xb0, 0x01, 0x7B, 0x02, 0x00, 0xFF]
+    CMD_PHOTO101 = [0x00, 0xc0, 0x00, 0x00, 0xFF]
     CMD_PHOTO2 = [0x80, 0xb0, 0x02, 0x7A, 0x02, 0x00, 0xFF]
+    CMD_PHOTO202 = [0x00, 0xc0, 0x00, 0x00, 0xFF]
     CMD_PHOTO3 = [0x80, 0xb0, 0x03, 0x79, 0x02, 0x00, 0xFF]
+    CMD_PHOTO303 = [0x00, 0xc0, 0x00, 0x00, 0xFF]
     CMD_PHOTO4 = [0x80, 0xb0, 0x04, 0x78, 0x02, 0x00, 0xFF]
+    CMD_PHOTO404 = [0x00, 0xc0, 0x00, 0x00, 0xFF]
     CMD_PHOTO5 = [0x80, 0xb0, 0x05, 0x77, 0x02, 0x00, 0xFF]
+    CMD_PHOTO505 = [0x00, 0xc0, 0x00, 0x00, 0xFF]
     CMD_PHOTO6 = [0x80, 0xb0, 0x06, 0x76, 0x02, 0x00, 0xFF]
+    CMD_PHOTO606 = [0x00, 0xc0, 0x00, 0x00, 0xFF]
     CMD_PHOTO7 = [0x80, 0xb0, 0x07, 0x75, 0x02, 0x00, 0xFF]
+    CMD_PHOTO707 = [0x00, 0xc0, 0x00, 0x00, 0xFF]
     CMD_PHOTO8 = [0x80, 0xb0, 0x08, 0x74, 0x02, 0x00, 0xFF]
+    CMD_PHOTO808 = [0x00, 0xc0, 0x00, 0x00, 0xFF]
     CMD_PHOTO9 = [0x80, 0xb0, 0x09, 0x73, 0x02, 0x00, 0xFF]
+    CMD_PHOTO909 = [0x00, 0xc0, 0x00, 0x00, 0xFF]
     CMD_PHOTO10 = [0x80, 0xb0, 0x0A, 0x72, 0x02, 0x00, 0xFF]
+    CMD_PHOTO1010 = [0x00, 0xc0, 0x00, 0x00, 0xFF]
     CMD_PHOTO11 = [0x80, 0xb0, 0x0B, 0x71, 0x02, 0x00, 0xFF]
+    CMD_PHOTO1111 = [0x00, 0xc0, 0x00, 0x00, 0xFF]
     CMD_PHOTO12 = [0x80, 0xb0, 0x0C, 0x70, 0x02, 0x00, 0xFF]
+    CMD_PHOTO1212 = [0x00, 0xc0, 0x00, 0x00, 0xFF]
     CMD_PHOTO13 = [0x80, 0xb0, 0x0D, 0x6F, 0x02, 0x00, 0xFF]
+    CMD_PHOTO1313 = [0x00, 0xc0, 0x00, 0x00, 0xFF]
     CMD_PHOTO14 = [0x80, 0xb0, 0x0E, 0x6E, 0x02, 0x00, 0xFF]
+    CMD_PHOTO1414 = [0x00, 0xc0, 0x00, 0x00, 0xFF]
     CMD_PHOTO15 = [0x80, 0xb0, 0x0F, 0x6D, 0x02, 0x00, 0xFF]
+    CMD_PHOTO1515 = [0x00, 0xc0, 0x00, 0x00, 0xFF]
     CMD_PHOTO16 = [0x80, 0xb0, 0x10, 0x6C, 0x02, 0x00, 0xFF]
+    CMD_PHOTO1616 = [0x00, 0xc0, 0x00, 0x00, 0xFF]
     CMD_PHOTO17 = [0x80, 0xb0, 0x11, 0x6B, 0x02, 0x00, 0xFF]
+    CMD_PHOTO1717 = [0x00, 0xc0, 0x00, 0x00, 0xFF]
     CMD_PHOTO18 = [0x80, 0xb0, 0x12, 0x6A, 0x02, 0x00, 0xFF]
+    CMD_PHOTO1818 = [0x00, 0xc0, 0x00, 0x00, 0xFF]
     CMD_PHOTO19 = [0x80, 0xb0, 0x13, 0x69, 0x02, 0x00, 0xFF]
+    CMD_PHOTO1919 = [0x00, 0xc0, 0x00, 0x00, 0xFF]
     CMD_PHOTO20 = [0x80, 0xb0, 0x14, 0x68, 0x02, 0x00, 0xFF]
+    CMD_PHOTO2020 = [0x00, 0xc0, 0x00, 0x00, 0xFF]
 # get all the available readers
     r = readers()
     print "Available readers:", r
@@ -235,7 +261,6 @@ def photoid13():
     data, sw1, sw2 = connection.transmit(COMMAND1)
     print data
     print "Command1: %02X %02X" % (sw1, sw2)
-#print "Command1 kri : %02X " % (sw1)
 # CID
     data, sw1, sw2 = connection.transmit(COMMAND2)
     print data
@@ -249,7 +274,6 @@ def photoid13():
 #print kid
     kid.append(",")
     print "Command2: %02X %02X" % (sw1, sw2)
- 
 # Fullname Thai + Eng + BirthDate + Sex
     data, sw1, sw2 = connection.transmit(COMMAND3)
     print data
@@ -263,7 +287,6 @@ def photoid13():
     print
     kid.append(",")
     print "Command4: %02X %02X" % (sw1, sw2)
- 
 # Address
     data, sw1, sw2 = connection.transmit(COMMAND5)
     print data
@@ -277,12 +300,10 @@ def photoid13():
     print
     kid.append(",")
     print "Command6: %02X %02X" % (sw1, sw2)
- 
 # issue/expire
     data, sw1, sw2 = connection.transmit(COMMAND7)
     print data
     print "Command7: %02X %02X" % (sw1, sw2)
- 
     data, sw1, sw2 = connection.transmit(COMMAND8)
     print data
     for d in data:
@@ -296,89 +317,95 @@ def photoid13():
         f1.write("%s" %item)
     f1.close
     print "Command8: %02X %02X" % (sw1, sw2)
-# photo
-#    photo = bytearray()
     photo = []
-    photo2 = []
     data, sw1, sw2 = connection.transmit(CMD_PHOTO1)
-    print "Command0120: %02X %02X" % (sw1, sw2)
+    print "photo1: %02X %02X" % (sw1, sw2)
     photo += data
-    photo2 += data
+    data, sw1, sw2 = connection.transmit(CMD_PHOTO101)
+    photo += data
+#    photo += getData(CMD_PHOTO1, req)[0]
     data, sw1, sw2 = connection.transmit(CMD_PHOTO2)
-    print "Command0220: %02X %02X" % (sw1, sw2)
+    photo += data
+    data, sw1, sw2 = connection.transmit(CMD_PHOTO202)
     photo += data
     data, sw1, sw2 = connection.transmit(CMD_PHOTO3)
-    print "Command0320: %02X %02X" % (sw1, sw2)
+    photo += data
+    data, sw1, sw2 = connection.transmit(CMD_PHOTO303)
     photo += data
     data, sw1, sw2 = connection.transmit(CMD_PHOTO4)
-    print "Command0420: %02X %02X" % (sw1, sw2)
+    photo += data
+    data, sw1, sw2 = connection.transmit(CMD_PHOTO404)
     photo += data
     data, sw1, sw2 = connection.transmit(CMD_PHOTO5)
-    print "Command0520: %02X %02X" % (sw1, sw2)
+    photo += data
+    data, sw1, sw2 = connection.transmit(CMD_PHOTO505)
     photo += data
     data, sw1, sw2 = connection.transmit(CMD_PHOTO6)
-    print "Command0620: %02X %02X" % (sw1, sw2)
+    photo += data
+    data, sw1, sw2 = connection.transmit(CMD_PHOTO606)
     photo += data
     data, sw1, sw2 = connection.transmit(CMD_PHOTO7)
-    print "Command0720: %02X %02X" % (sw1, sw2)
+    photo += data
+    data, sw1, sw2 = connection.transmit(CMD_PHOTO707)
     photo += data
     data, sw1, sw2 = connection.transmit(CMD_PHOTO8)
-    print "Command0820: %02X %02X" % (sw1, sw2)
+    photo += data
+    data, sw1, sw2 = connection.transmit(CMD_PHOTO808)
     photo += data
     data, sw1, sw2 = connection.transmit(CMD_PHOTO9)
-    print "Command0920: %02X %02X" % (sw1, sw2)
+    photo += data
+    data, sw1, sw2 = connection.transmit(CMD_PHOTO909)
     photo += data
     data, sw1, sw2 = connection.transmit(CMD_PHOTO10)
-    print "Command1020: %02X %02X" % (sw1, sw2)
+    photo += data
+    data, sw1, sw2 = connection.transmit(CMD_PHOTO1010)
     photo += data
     data, sw1, sw2 = connection.transmit(CMD_PHOTO11)
-    print "Command1120: %02X %02X" % (sw1, sw2)
+    photo += data
+    data, sw1, sw2 = connection.transmit(CMD_PHOTO1111)
     photo += data
     data, sw1, sw2 = connection.transmit(CMD_PHOTO12)
-    print "Command1220: %02X %02X" % (sw1, sw2)
+    photo += data
+    data, sw1, sw2 = connection.transmit(CMD_PHOTO1212)
     photo += data
     data, sw1, sw2 = connection.transmit(CMD_PHOTO13)
-    print "Command1320: %02X %02X" % (sw1, sw2)
+    photo += data
+    data, sw1, sw2 = connection.transmit(CMD_PHOTO1313)
     photo += data
     data, sw1, sw2 = connection.transmit(CMD_PHOTO14)
-    print "Command1420: %02X %02X" % (sw1, sw2)
+    photo += data
+    data, sw1, sw2 = connection.transmit(CMD_PHOTO1414)
     photo += data
     data, sw1, sw2 = connection.transmit(CMD_PHOTO15)
-    print "Command1520: %02X %02X" % (sw1, sw2)
+    photo += data
+    data, sw1, sw2 = connection.transmit(CMD_PHOTO1515)
     photo += data
     data, sw1, sw2 = connection.transmit(CMD_PHOTO16)
-    print "Command1620: %02X %02X" % (sw1, sw2)
+    photo += data
+    data, sw1, sw2 = connection.transmit(CMD_PHOTO1616)
     photo += data
     data, sw1, sw2 = connection.transmit(CMD_PHOTO17)
-    print "Command1720: %02X %02X" % (sw1, sw2)
+    photo += data
+    data, sw1, sw2 = connection.transmit(CMD_PHOTO1717)
     photo += data
     data, sw1, sw2 = connection.transmit(CMD_PHOTO18)
-    print "Command1820: %02X %02X" % (sw1, sw2)
+    photo += data
+    data, sw1, sw2 = connection.transmit(CMD_PHOTO1818)
     photo += data
     data, sw1, sw2 = connection.transmit(CMD_PHOTO19)
-    print "Command1920: %02X %02X" % (sw1, sw2)
+    photo += data
+    data, sw1, sw2 = connection.transmit(CMD_PHOTO1919)
     photo += data
     data, sw1, sw2 = connection.transmit(CMD_PHOTO20)
-    print "Command2020: %02X %02X" % (sw1, sw2)
     photo += data
-    print photo 
-#    data = HexListToBinString(photo)
-#    data2 = hex2bin2('kriengsak')
-#    data2 = hex2bin2(photo2)
-#    data2 = bytearray.fromhex(photo)
-#    data  = bytearray.fromhex(photo2)
-#    data = hex2bin2(photo)
-#    print data
-#    print data2
-#    f = open(cid + ".jpg", "wb")
+    data, sw1, sw2 = connection.transmit(CMD_PHOTO2020)
+    photo += data
+#    print photo 
+    dataa1 = HexListToBinString(photo)
     f = open("photoid13.jpg", "wb")
-#    f.write(data2)
-#    f.write(photo)
+    f.write(dataa1)
     f.close
-    f = open("photoid132.jpg", "wb")
-#    f.write(data2)
-    f.close
-
+#    f = open(cid + ".jpg", "wb")
     f1 = open('./kriid.txt','r')
     data=f1.readline()
     list=data.split(",")
@@ -762,14 +789,27 @@ def searchhn() :
 
 def hex2bin2(hexval):
     print hexval
-#    return
-    thelen = len(hexval)*4
+    r_data = binascii.unhexlify(hexval)
+    stream = io.BytesIO(r_data)
+    img = Image.open(stream)
+    draw = ImageDraw.Draw(img)
+    font = ImageFont.truetype("arial.ttf",14)
+    draw.text((0, 220),"This is a test11",(0,255,0),font=font)
+    draw = ImageDraw.Draw(img)
+#    with open(img,'rb') as in_file: #error on here invalid file:
+#        hex_data = in_file.read()
+    # Unhexlify the data.
+#    bin_data = binascii.unhexlify(bytes(hex_data))
+    bin_data = binascii.unhexlify(bytes(hexval))
+    print(bin_data)
+    return
+#    thelen = len(hexval)*4
 #    binval = bin(int(hexval, 16))[2:]
-    krihex = int(str(hexval).strip(),16)
-    binval = bin(krihex)[2:]
-    while ((len(binval)) < thelen):
-        binval = '0' + binval
-    return binval
+#    krihex = int(str(hexval).strip(),16)
+#    binval = bin(krihex)[2:]
+#    while ((len(binval)) < thelen):
+#        binval = '0' + binval
+#    return binval
 
 
 def hex2bin(self,str):
