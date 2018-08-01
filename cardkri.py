@@ -6,13 +6,13 @@
 # from Tkinter import *
 from Tkinter import Tk, Button, Frame, Entry,Label,StringVar
 import Tkinter as tk
-#from Tkinter import StringVar
-from PIL import ImageTk, Image ,ImageDraw , ImageFont
-from smartcard.System import readers
-import io
-import binascii
-from reportlab.pdfgen import canvas
+import io, binascii,shutil,datetime,time
 import subprocess, sys , os ,MySQLdb ,mysql.connector
+from time import sleep
+#from datetime import date,time,timedelta
+from PIL import ImageTk, Image ,ImageDraw , ImageFont,ImageFile
+from smartcard.System import readers
+from reportlab.pdfgen import canvas
 from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
 from tkFileDialog import askopenfilename
@@ -67,12 +67,10 @@ def readcard():
 #print kid
     kid.append(",")
     print "Command2: %02X %02X" % (sw1, sw2)
- 
 # Fullname Thai + Eng + BirthDate + Sex
     data, sw1, sw2 = connection.transmit(COMMAND3)
     print data
     print "Command3: %02X %02X" % (sw1, sw2)
- 
     data, sw1, sw2 = connection.transmit(COMMAND4)
     print data
     for d in data:
@@ -81,12 +79,10 @@ def readcard():
     print
     kid.append(",")
     print "Command4: %02X %02X" % (sw1, sw2)
- 
 # Address
     data, sw1, sw2 = connection.transmit(COMMAND5)
     print data
     print "Command5: %02X %02X" % (sw1, sw2)
- 
     data, sw1, sw2 = connection.transmit(COMMAND6)
     print data
     for d in data:
@@ -95,12 +91,10 @@ def readcard():
     print
     kid.append(",")
     print "Command6: %02X %02X" % (sw1, sw2)
- 
 # issue/expire
     data, sw1, sw2 = connection.transmit(COMMAND7)
     print data
     print "Command7: %02X %02X" % (sw1, sw2)
- 
     data, sw1, sw2 = connection.transmit(COMMAND8)
     print data
     for d in data:
@@ -121,12 +115,9 @@ def readcard():
     words = list[1].split("#")
     pre = words[0]
     name = words[1]
-    uniline22 = words[3].split()
-    surname = uniline22[0]
-    uniline6 = words[6].split()
-    uniline66 = uniline6[1]
-    birth = uniline66[0:8]
-    sex = uniline66[-1]
+    surname = words[3].split()[0]
+    birth = words[6].split()[1][0:8]
+    sex = words[6].split()[1][-1]
     if sex=='1':
         kripre = '1'
     if sex=='2':
@@ -137,27 +128,25 @@ def readcard():
     words = list[2].split("#")
     address1 = words[0]+words[1]
     tumbon0 = words[5]
-#    tumbon = tumbon0[4:30]
     thaitumbon = unicode(tumbon0,"tis-620")
     tumbon1 = thaitumbon.replace(u'ตำบล',"")
     tumbon = tumbon1.encode('tis-620')
     amphur0 = words[6]
-#    amphur = amphur0[5:30]
     thaiamphur = unicode(amphur0,"tis-620")
     amphur1 = thaiamphur.replace(u'อำเภอ',"")
     amphur = amphur1.encode('tis-620')
     province0 = words[7].strip()
-#    province = province0[7:30]
     print province0
     print unicode(province0,"tis-620")
     thaiprovince = unicode(province0,"tis-620")
     province1 = thaiprovince.replace(u'จังหวัด',"")
     province = province1.encode('tis-620')
+    expire = list[3]
     f1.close
     csvfile = '../Dropbox/krifoxone/kriid.csv'
     if os.path.isfile(csvfile):
         f1 = open(csvfile,'w+')
-        f1.write(id13+","+pre+name+" "+surname+","+birth+","+sex+","+address1+","+tumbon+","+amphur+","+province+","+name+","+surname+","+kripre)
+        f1.write(id13+","+pre+name+" "+surname+","+birth+","+sex+","+address1+","+tumbon+","+amphur+","+province+","+name+","+surname+","+kripre+","+expire)
         f1.close
         sv = StringVar(root,value='เริ่ม อ่านบัตร')
         print "start cardreader"
@@ -172,9 +161,10 @@ def readcard():
         Label(root,text=cardname2).grid(row=1,column=8) #Creating label
         abirth = int(birth)
         abirth2 = abirth%100
-        abirth3 = abirth/100%100
-        abirth4 = uniline66[0:4]
-        Label(root,text="     "+str(int(abirth4)-543)+"-"+str(abirth3)+"-"+str(abirth2)+"    ").grid(row=5,column=8) #Creating label
+        abirth3 = int(abirth/100%100)
+        abirth4 = int(abirth/10000%10000)
+        Label(root,text=" ("+str(abirth4)+") "+str(abirth4-543)+"-"+str(abirth3)+"-"+str(abirth2)+"  ").grid(row=5,column=8) #Creating label
+
     else:
         print("ไม่พบ file kriid.csv")
         sv = StringVar(root,value='เปิด cardkri.py ผิดที่')
@@ -192,6 +182,14 @@ def readcard():
 #	data, sw1, sw2 = connection.transmit(req + [cmd[-1]])
 #	data, sw1, sw2 = self.connection.transmit(req + [cmd[-1]])
 #	return [data, sw1, sw2]
+def thai2unicode(data):
+	result = ''
+	if isinstance(data, list):
+		for d in data:
+			result += unicode(chr(d),"tis-620")
+	else :
+		result = data.decode("tis-620").encode("utf-8")
+	return result.strip()
 
 def photoid13():
 # Reset
@@ -366,18 +364,31 @@ def photoid13():
     data=f1.readline()
     list=data.split(",")
     id13=list[0]
-    f = open(id13+".jpg", "wb")
+    expire=list[3]
+    kripic =id13+expire+".jpg"
+    f = open(kripic, "wb")
     f.write(dataa1)
+    f.flush()
     f.close
+    sleep(0.1)
+    ImageFile.LOAD_TRUNCATED_IMAGES = True
+    f_src = open(id13+expire+".jpg",'rb')
+    f_dest = open("images.jpg",'wb')
+    shutil.copyfileobj(f_src,f_dest)
+    sleep(0.1)
+    imgkri(kripic)
     words = list[1].split("#")
     pre = words[0]
     name = words[1]
-    uniline22 = words[3].split()
-    surname = uniline22[0]
-    uniline6 = words[6].split()
-    uniline66 = uniline6[1]
-    birth = uniline66[0:8]
-    sex = uniline66[-1]
+#    uniline22 = words[3].split()
+#    surname = uniline22[0]
+    surname = words[3].split()[0]
+#    uniline6 = words[6].split()
+#    uniline66 = uniline6[1]
+#    birth = uniline66[0:8]
+    birth = words[6].split()[1][0:8]
+#    sex = uniline66[-1]
+    sex = words[6].split()[1][-1]
     if sex=='1':
         kripre = '1'
     if sex=='2':
@@ -388,18 +399,15 @@ def photoid13():
     words = list[2].split("#")
     address1 = words[0]+words[1]
     tumbon0 = words[5]
-#    tumbon = tumbon0[4:30]
+#    tumbon = tumbon0[4:30] #  amphur = amphur0[5:30] #  province = province0[7:30]
     thaitumbon = unicode(tumbon0,"tis-620")
     tumbon1 = thaitumbon.replace(u'ตำบล',"")
     tumbon = tumbon1.encode('tis-620')
     amphur0 = words[6]
-#    amphur = amphur0[5:30]
     thaiamphur = unicode(amphur0,"tis-620")
     amphur1 = thaiamphur.replace(u'อำเภอ',"")
     amphur = amphur1.encode('tis-620')
     province0 = words[7].strip()
-#    province = province0[7:30]
-    print province0
     print unicode(province0,"tis-620")
     thaiprovince = unicode(province0,"tis-620")
     province1 = thaiprovince.replace(u'จังหวัด',"")
@@ -408,7 +416,7 @@ def photoid13():
     csvfile = '../Dropbox/krifoxone/kriid.csv'
     if os.path.isfile(csvfile):
         f1 = open(csvfile,'w+')
-        f1.write(id13+","+pre+name+" "+surname+","+birth+","+sex+","+address1+","+tumbon+","+amphur+","+province+","+name+","+surname+","+kripre)
+        f1.write(id13+","+pre+name+" "+surname+","+birth+","+sex+","+address1+","+tumbon+","+amphur+","+province+","+name+","+surname+","+kripre+","+expire)
         f1.close
         sv = StringVar(root,value='เริ่ม อ่านบัตร')
         print "start cardreader"
@@ -423,9 +431,9 @@ def photoid13():
         Label(root,text=cardname2).grid(row=1,column=8) #Creating label
         abirth = int(birth)
         abirth2 = abirth%100
-        abirth3 = abirth/100%100
-        abirth4 = uniline66[0:4]
-        Label(root,text="     "+str(int(abirth4)-543)+"-"+str(abirth3)+"-"+str(abirth2)+"    ").grid(row=5,column=8) #Creating label
+        abirth3 = int(abirth/100%100)
+        abirth4 = int(abirth/10000%10000)
+        Label(root,text=" ("+str(abirth4)+") "+str(abirth4-543)+"-"+str(abirth3)+"-"+str(abirth2)+"  ").grid(row=5,column=8) #Creating label
     else:
         print("ไม่พบ file kriid.csv")
         sv = StringVar(root,value='เปิด cardkri.py ผิดที่')
@@ -804,12 +812,25 @@ def initkri():
     aa6=Entry(root,textvariable=sv6)
     aa6.grid(row=7,column=6)
 
-def img():
+def imgkri(aaa):
 #    c1=kriengten()
 #    c1.openpicture('images.png')
-    img =Image.open('images.png')
+    if aaa == '' :
+        bbb ='images.jpg'
+    else:
+        bbb = aaa 
+#    img =Image.open(bbb).convert('LA')
+    img =Image.open(bbb)
     img.show()
 
+def imgkri2():
+    bbb ='images.jpg'
+    img =Image.open(bbb)
+#    img.load()
+#    img.thumbnail((250,250), Image.ANTIALIAS)
+    img.show()
+#    c1=kriengten()
+#    c1.openpicture('images.png')
 
 #%reset -f
 root=Tk()  #It is just a holder
@@ -850,6 +871,6 @@ Button(root,text="ค้น ID13",command=searchid13).grid(row=6,column=4)
 Button(root,text="ค้น HN",command=searchhn).grid(row=12,column=4)
 Button(root,text="แก้ไข id13 จากcardหลังค้นHN",command=copytocsv).grid(row=12,column=8)
 Button(root,text="load photo+id13",command=photoid13).grid(row=15,column=1)
-Button(root,text="Gen QRcode",command=img).grid(row=15,column=4)
+Button(root,text="open picture",command=imgkri2).grid(row=15,column=4)
 
 root.mainloop() 
