@@ -16,13 +16,13 @@ from reportlab.pdfgen import canvas
 from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
 from tkFileDialog import askopenfilename
-#from mysql.connector import MySQLConnection, Error
-from python_mysql_dbconfig import read_kri_config
+from mysql.connector import MySQLConnection, Error
+from python_mysql_dbconfig import read_kri_config,read_db_config
 from smartcard.util import HexListToBinString, toHexString, toBytes
 from picturekri import kriengten
 
 pdfmetrics.registerFont(TTFont('THSarabunNew','THSarabunNew.ttf'))
-db_config = read_kri_config()
+db_config = read_db_config()
 
 def readcard():
     initkri()
@@ -485,17 +485,12 @@ def searchid13():
                     aa.grid(row=5,column=6)
                     return
     
-#    db_config = read_kri_config()
-    print db_config
     khn2 = ""
     try:
+        print db_config
         print('Connecting to MySQL database...')
-#        conn = MySQLConnection(**db_config)
+        conn = MySQLConnection(**db_config)
 #conn = MySQLdb.connect(charset='utf8', init_command='SET NAMES UTF8')
-        conn = MySQLdb.connect (charset='utf8',host = "192.168.1.252",
-                        user = "hospital",
-                        passwd = db_config,
-                        db = "tikisvn3")
         print('Connection Successful!!!')
         cursor = conn.cursor ()
         cursor.execute ("SELECT hn,name,surname,xn,brdate,id13 FROM krieng where trim(xn)<>'old' and id13='"+aaa.strip()+"';")
@@ -553,16 +548,11 @@ def searchid13():
         print("Unknow error occured")
 
 def copyandfindid13():
-#    db_config = read_kri_config()
-    print db_config
     khn2 = ""
     try:
         print('Connecting to MySQL database...')
-#        conn = MySQLConnection(**db_config)
-        conn = MySQLdb.connect (charset='utf8',host = "192.168.1.252",
-                        user = "hospital",
-                        passwd = db_config,
-                        db = "tikisvn3")
+        print db_config
+        conn = MySQLConnection(**db_config)
         print('Connection Successful!!!')
         cursor = conn.cursor ()
         myfile = open('./kriid.txt','r')
@@ -688,14 +678,12 @@ def searchhn() :
         aa.grid(row=5,column=6)
         initkri()
         return
-    print db_config
     khn2 = ""
     try:
         print('Connecting to MySQL database...')
-        conn = MySQLdb.connect (charset='utf8',host = "192.168.1.252",
-                        user = "hospital",
-                        passwd = db_config,
-                        db = "tikisvn3")
+        print db_config
+        conn = MySQLConnection(**db_config)
+#        conn = MySQLdb.connect (charset='utf8',host = "",user = "",passwd =,db = "")
         print('Connection Successful!!!')
         cursor = conn.cursor ()
         curex ="SELECT hn,name,surname,xn,brdate,id13 FROM krieng where trim(xn)<>'old' and hn="+aaa.strip()+";"
