@@ -17,7 +17,7 @@ from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
 from tkFileDialog import askopenfilename
 from mysql.connector import MySQLConnection, Error
-from python_mysql_dbconfig import read_kri_config,read_db_config
+from krieng import read_kri_config,read_db_config
 from smartcard.util import HexListToBinString, toHexString, toBytes
 from picturekri import kriengten
 
@@ -812,13 +812,14 @@ def imgkri(aaa):
     img.show()
 
 def imgkri2():
-    bbb ='images.jpg'
-    img =Image.open(bbb)
+#    bbb ='images.jpg'
+#    img =Image.open(bbb)
+#    img.show()
 #    img.load()
 #    img.thumbnail((250,250), Image.ANTIALIAS)
-    img.show()
-#    c1=kriengten()
-#    c1.openpicture('images.png')
+    c1=kriengten()
+    c1.openpicture2('images.jpg')
+    c1.kbarcode('123456')
 
 #%reset -f
 root=Tk()  #It is just a holder
