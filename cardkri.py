@@ -820,7 +820,7 @@ def imgkri2():
     c1=kriengten()
     c1.openpicture2('images.jpg')
     c1.kbarcode('123456')
-
+    c1.qrcode('kriengsak tengamnuay')
 #%reset -f
 root=Tk()  #It is just a holder
 root.title("Mpt Hospital")
