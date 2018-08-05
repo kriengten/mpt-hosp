@@ -8,6 +8,9 @@ from Tkinter import Tk, Button, Frame, Entry,Label,StringVar
 import Tkinter as tk
 import io, binascii,shutil,datetime,time
 import subprocess, sys , os ,MySQLdb ,mysql.connector
+import tkMessageBox
+#import win32api
+#from gi.repository import Gtk
 from time import sleep
 #from datetime import date,time,timedelta
 from PIL import ImageTk, Image ,ImageDraw , ImageFont,ImageFile
@@ -115,7 +118,9 @@ def readcard():
     words = list[1].split("#")
     pre = words[0]
     name = words[1]
+    name1 = unicode(name,"tis-620")
     surname = words[3].split()[0]
+    surname1 = unicode(surname,"tis-620")
     birth = words[6].split()[1][0:8]
     sex = words[6].split()[1][-1]
     if sex=='1':
@@ -164,7 +169,15 @@ def readcard():
         abirth3 = int(abirth/100%100)
         abirth4 = int(abirth/10000%10000)
         Label(root,text=" ("+str(abirth4)+") "+str(abirth4-543)+"-"+str(abirth3)+"-"+str(abirth2)+"  ").grid(row=5,column=8) #Creating label
-
+        aa8.delete(0,50)  #  aa8.destroy() to delete block aa8
+        aa8.insert(0,name1+" "+surname1)
+#        tkMessageBox.showerror("Error","No disk space left on device")  # An error box
+#        tkMessageBox.showwarning("Warning","Could not start service")  # A warning box 
+#        tkMessageBox.showinfo("Information",u"เกรียงศักดิ์ เต็งอำนวย in Python.")  # An information box
+#        sv4 = StringVar(root,value=name1+" "+surname1)
+#        aa4=Entry(root,textvariable=sv4)           #name
+#        aa4.grid(row=7,column=1)
+#        aa8["text"] = name1+" "+surname1
     else:
         print("ไม่พบ file kriid.csv")
         sv = StringVar(root,value='เปิด cardkri.py ผิดที่')
@@ -511,6 +524,7 @@ def searchid13():
                     sv1 = StringVar(root,value="มีid13 จำนวน"+str(acount))
                     aa=Entry(root,textvariable=sv1)           #creating entry box
                     aa.grid(row=5,column=6)
+                    tkMessageBox.showinfo("Information",u"มี id13 ซ้ำกันจำนวน "+str(acount)+u" ให้แก้ไขด้วย")  # An information box
                 break
             for row in rows:
                 khn = row[0]
@@ -742,6 +756,164 @@ def searchhn() :
     except :
         print("Unknow error occured")
 
+def searchnamebirth():
+    khn2 = ""
+    try:
+        print('Connecting to MySQL database...')
+        print db_config
+        conn = MySQLConnection(**db_config)
+        print('Connection Successful!!!')
+        cursor = conn.cursor ()
+        myfile = open('../Dropbox/krifoxone/kriid.csv','r')
+        data=myfile.readline()
+        list=data.split(",")
+        kid13=list[0]
+        print kid13
+        name = unicode(list[8],"tis-620")
+#        name1 = list[8].encode('tis-620')
+        surname = unicode(list[9],"tis-620")
+#        surname1 = list[9].encode('tis-620')
+        year1 = str(int(list[2][0:4])-543)
+        birth = year1+"-"+list[2][4:6]+"-"+list[2][6:8]
+        print name
+        print surname
+        print birth
+        cursor.execute ("SELECT hn,name,surname,xn,brdate,id13 FROM krieng where trim(xn)<>'old' and name='"+name.strip()+"' and surname='"+surname.strip()+"' and brdate='"+birth+"';")
+        acount = 0
+        while True:
+            rows = cursor.fetchmany ()
+            if not rows:
+                cursor.close ()
+                conn.close ()
+                if acount == 0:
+                    print "ไม่พบชื่อ นี้"
+                    sv1 = StringVar(root,value="ไม่พบชื่อ นี้")
+                    aa=Entry(root,textvariable=sv1)           #creating entry box
+                    aa.grid(row=5,column=6)
+                if acount >= 2:
+                    print "มีid13 จำนวน"+str(acount)
+                    sv1 = StringVar(root,value="มีชื่อ จำนวน"+str(acount))
+                    aa=Entry(root,textvariable=sv1)           #creating entry box
+                    aa.grid(row=5,column=6)
+                sv = StringVar(root,value='ค้นชื่อ เรียบร้อย')
+                a=Entry(root,textvariable=sv)           #creating entry box
+                a.grid(row=5,column=1)
+                print "Find name Ready"
+                break
+            for row in rows:
+#            if row is None and acount>0:   # row ==None
+                khn = row[0]
+                khn2 = khn2+","+str(khn)
+                print "HN =:", row[0]
+                sv1 = StringVar(root,value=khn)
+                aa=Entry(root,textvariable=sv1)           #HN
+                aa.grid(row=5,column=6)
+                Label(root,text=kid13).grid(row=5,column=4) #id13
+#                sv2 = StringVar(root,value=kid13)
+#                aa2=Entry(root,textvariable=sv2)           #creating entry box
+#                aa2.grid(row=6,column=1)
+                sv3 = StringVar(root,value=khn2)
+                aa3=Entry(root,textvariable=sv3)           #HN2
+                aa3.grid(row=6,column=6)
+                sv4 = StringVar(root,value=row[1]+" "+row[2])
+                aa4=Entry(root,textvariable=sv4)           #name
+                aa4.grid(row=7,column=1)
+                sv5 = StringVar(root,value='XN:'+row[3])
+                aa5=Entry(root,textvariable=sv5)           #XN
+                aa5.grid(row=7,column=4)
+                sv6 = StringVar(root,value=str(row[4]))
+                aa6=Entry(root,textvariable=sv6)           #brdate
+                aa6.grid(row=7,column=6)
+#                sv8 = StringVar(root,value=name+' '+surname)
+#                aa8=Entry(root,textvariable=sv8)
+#                aa8.grid(row=9,column=1)
+                print khn
+                print row[1]+" "+row[2]
+#            +" "+row[2]
+            acount += 1
+    except Exception as e:
+        print (e)
+        sv1 = StringVar(root,value="ไม่สามารถเชื่อม mysql ได้")
+        aa=Entry(root,textvariable=sv1)           #creating entry box
+        aa.grid(row=5,column=6)
+        print "ไม่สามารถเชื่อม mysql ได้"
+    except :
+        print("Unknow error occured")
+
+def searchname() :
+    global aa8
+    aaa = aa8.get()
+    kname = aaa.split()
+    print kname[0]
+    print kname[1] 
+
+    khn2 = ""
+    try:
+        print db_config
+        print('Connecting to MySQL database...')
+        conn = MySQLConnection(**db_config)
+#conn = MySQLdb.connect(charset='utf8', init_command='SET NAMES UTF8')
+        print('Connection Successful!!!')
+        cursor = conn.cursor ()
+#        cursor.execute ("SELECT hn,name,surname,xn,brdate,id13 FROM krieng where trim(xn)<>'old' and name='"+kname[0].strip()+"';")
+        cursor.execute ("SELECT hn,name,surname,xn,brdate,id13 FROM krieng where trim(xn)<>'old' and name='"+kname[0].strip()+"' and surname='"+kname[1].strip()+"';")
+        acount = 0
+        while True:
+            rows = cursor.fetchmany ()
+            if not rows:
+                cursor.close ()
+                conn.close ()
+                if acount == 0:
+                    print "ไม่พบชื่อ นี้"
+                    sv1 = StringVar(root,value="ไม่พบชื่อ นี้")
+                    aa=Entry(root,textvariable=sv1)           #creating entry box
+                    aa.grid(row=5,column=6)
+                    initkri()
+                if acount >= 2:
+                    print "มีชื่อ จำนวน"+str(acount)
+                    sv1 = StringVar(root,value="มีชื่อ จำนวน"+str(acount))
+                    aa=Entry(root,textvariable=sv1)           #creating entry box
+                    aa.grid(row=5,column=6)
+                break
+            for row in rows:
+                khn = row[0]
+                khn2 = khn2+","+str(khn)
+                print "HN =:", row[0]
+                sv9 = StringVar(root,value=khn)
+                aa9=Entry(root,textvariable=sv9)           #HN
+                aa9.grid(row=9,column=6)
+                iiiddd = 'ID13:'+str(row[5])
+                Label(root,text=iiiddd).grid(row=10,column=6) #id13
+                sv10 = StringVar(root,value=khn2)
+                aa10=Entry(root,textvariable=sv10)           #HN2
+                aa10.grid(row=9,column=8)
+#                sv4 = StringVar(root,value=row[1]+" "+row[2])
+#                aa4=Entry(root,textvariable=sv4)           #creating entry box
+#                aa4.grid(row=7,column=1)
+#                sv5 = StringVar(root,value='XN:'+row[3])
+#                aa5=Entry(root,textvariable=sv5)           #XN
+#                aa5.grid(row=7,column=4)
+                Label(root,text='XN:'+row[3]).grid(row=10,column=4) #id13
+                bbbrrr = str(row[4])
+                Label(root,text='birth:'+bbbrrr).grid(row=10,column=8)  # birth
+                print khn
+                print row[1]+" "+row[2]
+                acount += 1
+                print acount
+
+#                sv6 = StringVar(root,value=str(row[4]))
+#                aa6=Entry(root,textvariable=sv6)           #Brith
+#                aa6.grid(row=7,column=6)
+
+    except Exception as e:
+        print (e)
+        sv1 = StringVar(root,value="ไม่สามารถเชื่อม mysql ได้")
+        aa=Entry(root,textvariable=sv1)           #creating entry box
+        aa.grid(row=5,column=6)
+        print "ไม่สามารถเชื่อม mysql ได้"
+    except :
+        print("Unknow error occured")
+
 def hex2bin2(hexval):
     print hexval
     r_data = binascii.unhexlify(hexval)
@@ -799,10 +971,14 @@ def initkri():
     sv6 = StringVar(root,value='brith: ')
     aa6=Entry(root,textvariable=sv6)
     aa6.grid(row=7,column=6)
+    sv9 = StringVar(root,value='HN: ')
+    aa9=Entry(root,textvariable=sv9)
+    aa9.grid(row=9,column=6)
+    sv10 = StringVar(root,value='HN:จาก รพ ')
+    aa10=Entry(root,textvariable=sv10)
+    aa10.grid(row=9,column=8)
 
 def imgkri(aaa):
-#    c1=kriengten()
-#    c1.openpicture('images.png')
     if aaa == '' :
         bbb ='images.jpg'
     else:
@@ -845,21 +1021,31 @@ aa2.grid(row=6,column=1)
 sv7 = StringVar(root,value='HN')
 aa7=Entry(root,text="HN",textvariable=sv7)
 aa7.grid(row=12,column=1)
+sv8 = StringVar(root,value='ชื่อ นามสกุล')
+aa8=Entry(root,textvariable=sv8)
+aa8.grid(row=9,column=1)
+sv9 = StringVar(root,value='HN: ')
+aa9=Entry(root,textvariable=sv9)
+aa9.grid(row=9,column=6)
 
 initkri()
 
-Label(root,text="ใส่ HN").grid(row=10,column=1) #Creating label
-Label(root,text="id13 จาก รพ").grid(row=10,column=6) #Creating label
 Label(root,text="ชื่อจาก card").grid(row=1,column=8) #Creating label
 Label(root,text="วันเกิด จาก card").grid(row=5,column=8) #Creating label
+Label(root,text="ใส่ HN").grid(row=10,column=1) #Creating label
+Label(root,text="XN").grid(row=10,column=4) #Creating label
+Label(root,text="id13 จาก รพ").grid(row=10,column=6) #Creating label
+Label(root,text="วันเกิด จากค้นชื่อ").grid(row=10,column=8) #Creating label
 
 Button(root,text="ใส่ idcard แล้วกดปุ่ม",command=readcard).grid(row=1,column=1)
 Button(root,text="copy+id13จากCard",command=copyandfindid13).grid(row=1,column=4)
-Button(root,text="พิมพ์ ใบสมัครงาน",command=printkri).grid(row=1,column=6)
+Button(root,text="ค้น Name+birthจากCard",command=searchnamebirth).grid(row=1,column=6)
 Button(root,text="ค้น ID13",command=searchid13).grid(row=6,column=4)
+Button(root,text="ค้น ชื่อ นามสกุล",command=searchname).grid(row=9,column=4)
 Button(root,text="ค้น HN",command=searchhn).grid(row=12,column=4)
 Button(root,text="แก้ไข id13 จากcardหลังค้นHN",command=copytocsv).grid(row=12,column=8)
 Button(root,text="load photo+id13",command=photoid13).grid(row=15,column=1)
 Button(root,text="open picture",command=imgkri2).grid(row=15,column=4)
+Button(root,text="พิมพ์ ใบสมัครงาน",command=printkri).grid(row=15,column=6)
 
 root.mainloop() 
