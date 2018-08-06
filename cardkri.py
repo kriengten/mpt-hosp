@@ -479,8 +479,16 @@ def copytocsv():
 
 def searchid13():
     global aa2
-    aaa = aa2.get()
-    print aaa 
+    aaa9 = aa2.get()
+    if aaa9.find('?;600764') > 0:
+        aaa = aaa9[aaa9.find('?;600764')+8:aaa9.find('?;600764')+21]
+        print aaa 
+        aa2.delete(0,250)  #  aa8.destroy() to delete block aa8
+        aa2.insert(0,aaa)
+
+    else:
+        aaa = aaa9
+        print aaa 
     if aaa.isdigit():
         print "is number"
     else:
