@@ -1,4 +1,12 @@
 #Mateusz Pabian TCS
+from __future__ import print_function
+import future        # pip install future
+import builtins      # pip install future
+import past          # pip install future
+import six           # pip install six
+from builtins import bytes
+from six.moves import tkinter as tk
+from six.moves import tkinter_messagebox as messagebox
 import socket
 import sys
 import threading
@@ -29,6 +37,7 @@ class EchoServer:
     
     def open_socket(self, host, port):
         self.server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         self.server.bind( (host, port) ) 
         self.server.listen(5)
 
@@ -71,9 +80,9 @@ class EchoServer:
 class Client(threading.Thread):
 
     def __init__(self, clientSocket, clientAddr, server):
-        super().__init__(daemon=True)
-        self.clientSocket = clientSocket;
-        self.clientAddr = clientAddr;
+        super(Client,self).__init__()
+        self.clientSocket = clientSocket
+        self.clientAddr = clientAddr
         self.server = server
         self.buff = ''
     
@@ -103,7 +112,7 @@ class Client(threading.Thread):
                 if self.buff.count(';')>=4:
                     data=self.buff                   
                 else:
-                    data = self.clientSocket.recv(1024);
+                    data = self.clientSocket.recv(1024)
                     if len(data)>0:
                         data = data.decode('UTF-8')
                         data = self.buff + data

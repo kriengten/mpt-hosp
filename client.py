@@ -1,11 +1,22 @@
-import tkinter as tk
+from __future__ import print_function
+import future        # pip install future
+import builtins      # pip install future
+import past          # pip install future
+import six           # pip install six
+from builtins import bytes
+from builtins import input
+from six.moves import tkinter as tk
+from six.moves import tkinter_messagebox as messagebox
+#import tkinter as tk
 import threading
 from tkinter import messagebox
-from socket import *
+#from socket import *
+import socket
+#from socket import *
 import time
 import sys
 
-s = socket(AF_INET, SOCK_STREAM) #utworzenie gniazda
+s = socket.socket(socket.AF_INET, socket.SOCK_STREAM) #utworzenie gniazda
 s.connect(('localhost', 12345)) #nawiazanie polaczenia
 
 def parse(x):
@@ -34,7 +45,7 @@ class Client(tk.Frame):
         self.selectedUser=None
         self.nickname=nickname
         self.master.title('Chat: '+str(nickname))
-        self.ucho= Hear(self,buff);
+        self.ucho= Hear(self,buff)
         self.ucho.start()
     
     def showMessage(self,frm,to,message,sep=' => '):
@@ -125,7 +136,7 @@ class Client(tk.Frame):
         
 
     def on_closing(self):
-        if tk.messagebox.askokcancel("Quit", "Do you want to quit?"):
+        if messagebox.askokcancel("Quit", "Do you want to quit?"):
             self.exit(None)
         
 class Hear(threading.Thread):
@@ -133,7 +144,7 @@ class Hear(threading.Thread):
         self.buff=buff
         self.root=root
         self.status=True
-        super().__init__(daemon=True)
+        super(Hear,self).__init__()
 
     def run(self):
         try:
@@ -178,11 +189,11 @@ while nickname is None:
             tmp=parse(buff+data)
             buff=tmp[1]
             if(tmp[0]=='logok'):
-                break;
+                break
             elif tmp[0]=='logfail':
                 print("This nickname has already been taken.")
                 nickname=None
-                break;                
+                break               
         
     else:
         print("This nickname has already been taken.")
