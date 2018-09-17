@@ -9,12 +9,14 @@ import six           # pip install six
 from builtins import bytes
 from six.moves import tkinter as tk
 from six.moves import tkinter_messagebox as messagebox
-import tkinter
+import tkinter.scrolledtext as tkscrolled
+import tkinter as tk
 from tkinter import StringVar,Entry,Label,Button , ttk ,Frame ,Text,Listbox
 #from Tkinter import *
 #from ttk import *
 import socket
 import _thread
+from netifaces import interfaces, ifaddresses, AF_INET
 
 class ChatClient(Frame):
   
@@ -27,23 +29,44 @@ class ChatClient(Frame):
     self.buffsize = 1024
     self.allClients = {}
     self.counter = 0
-  
+    self.handleSetServer()
+    if self.localip =='192.168.1.152' or self.localip == '192.168.2.106' :
+      print ("pass")
+      pass
+    else:
+      self.handleAddClient() 
+
   def initUI(self):
     self.root.title("Simple P2P Chat Client")
     ScreenSizeX = self.root.winfo_screenwidth()
     ScreenSizeY = self.root.winfo_screenheight()
     print (ScreenSizeX)
     print (ScreenSizeY)
-#    self.FrameSizeX  = 800
-#    self.FrameSizeY  = 600
-#    FramePosX   = (ScreenSizeX - self.FrameSizeX)/2
-#    FramePosY   = (ScreenSizeY - self.FrameSizeY)/2
+#    ccc = 0
+    for ifaceName in interfaces():
+        abc = ''
+        addresses = [i['addr']
+        for i in ifaddresses(ifaceName).setdefault(AF_INET, [{'addr':'No IP addr'}] )]
+        abc = ''.join(addresses)
+        print abc[0:3]
+        if abc[0:3] == '192':
+          self.localip = ''.join(addresses)
+          print (str(self.localip))
+        print '%s: %s' % (ifaceName, ', '.join(addresses))
+#        ccc = ccc+1
+
+
     self.FrameSizeX  = 800
     self.FrameSizeY  = 600
+#    FramePosX   = (ScreenSizeX - self.FrameSizeX)/2
+#    FramePosY   = (ScreenSizeY - self.FrameSizeY)/2
+#    self.FrameSizeX  = 800
+#    self.FrameSizeY  = 600
     FramePosX   = 100
     FramePosY   = 100
     self.root.geometry("%sx%s+%s+%s" % (self.FrameSizeX,self.FrameSizeY,FramePosX,FramePosY))
-    self.root.resizable(width=False, height=False)
+#    self.root.resizable(width=False, height=False)
+    self.root.resizable(width=True, height=True)
     
     padX = 10
     padY = 10
@@ -57,7 +80,8 @@ class ChatClient(Frame):
     self.nameVar.set("SDH")
     nameField = Entry(ipGroup, width=10, textvariable=self.nameVar)
     self.serverIPVar = StringVar()
-    self.serverIPVar.set("127.0.0.1")
+#    self.serverIPVar.set("127.0.0.1")
+    self.serverIPVar.set(self.localip)
     serverIPField = Entry(ipGroup, width=15, textvariable=self.serverIPVar)
     self.serverPortVar = StringVar()
     self.serverPortVar.set("8090")
@@ -65,10 +89,11 @@ class ChatClient(Frame):
     serverSetButton = Button(ipGroup, text="Set", width=10, command=self.handleSetServer)
     addClientLabel = Label(ipGroup, text="Add friend: ")
     self.clientIPVar = StringVar()
-    self.clientIPVar.set("127.0.0.1")
+#    self.clientIPVar.set("192.168.1.152")
+    self.clientIPVar.set("192.168.2.106")
     clientIPField = Entry(ipGroup, width=15, textvariable=self.clientIPVar)
     self.clientPortVar = StringVar()
-    self.clientPortVar.set("8091")
+    self.clientPortVar.set("8090")
     clientPortField = Entry(ipGroup, width=5, textvariable=self.clientPortVar)
     clientSetButton = Button(ipGroup, text="Add", width=10, command=self.handleAddClient)
     serverLabel.grid(row=0, column=0)
@@ -82,10 +107,28 @@ class ChatClient(Frame):
     clientSetButton.grid(row=0, column=8, padx=5)
     
     readChatGroup = Frame(parentFrame)
-    self.receivedChats = Text(readChatGroup, bg="white", width=60, height=30, state=tk.DISABLED)
-    self.friends = Listbox(readChatGroup, bg="white", width=30, height=30)
+    self.receivedChats = Text(readChatGroup, bg="white", width=60, height=20, state=tk.DISABLED)
+#    self.receivedChats = Text(readChatGroup, bg="white", width=60, height=20)
+    self.receivedChats.config(font=("consolas",12),undo=True,wrap='word')
+#    self.vsb = tk.Scrollbar(self,orient="vertical",command=self.receivedChats.yview)
+#    self.receivedChats.configure(yscrollcommand=self.vsb.set)
+#    self.vsb.pack(side="right",fill="y")
+#    self.receivedChats.pack(side="left",fill="both",expand=True)
+
+#    self.receivedChats.config(font=("tahoma",12),undo=True,wrap='word')
+#    self.TKScrollTXT = tkscrolled.ScrolledText(10, width=60, height=20, wrap='word')
+#    self.receivedChats = TKScrollTXT
+#    self.receivedChats = Text(readChatGroup, bg="white", width=60, height=20, state=tk.DISABLED)
+    self.friends = Listbox(readChatGroup, bg="white", width=30, height=20)
     self.receivedChats.grid(row=0, column=0, sticky=tk.W+tk.N+tk.S, padx = (0,10))
     self.friends.grid(row=0, column=1, sticky=tk.E+tk.N+tk.S)
+
+    # create a Scrollbar and associate it with txt
+#    scrollb = tki.Scrollbar(txt_frm, command=self.txt.yview)
+#    scrollb.grid(row=0, column=1, sticky='nsew')
+#    self.txt['yscrollcommand'] = scrollb.set
+
+
 
     writeChatGroup = Frame(parentFrame)
     self.chatVar = StringVar()
@@ -105,7 +148,10 @@ class ChatClient(Frame):
     writeChatGroup.grid(row=2, column=0, pady=10)
     self.statusLabel.grid(row=3, column=0)
     bottomLabel.grid(row=4, column=0, pady=10)
-    
+#    self.serverSoc = None
+#    self.handleSetServer()
+
+
   def handleSetServer(self):
     if self.serverSoc != None:
         self.serverSoc.close()
@@ -174,6 +220,7 @@ class ChatClient(Frame):
   def addChat(self, client, msg):
     self.receivedChats.config(state=tk.NORMAL)
     self.receivedChats.insert("end",client+": "+msg+"\n")
+    self.receivedChats.see("end")
     self.receivedChats.config(state=tk.DISABLED)
   
   def addClient(self, clientsoc, clientaddr):
@@ -194,6 +241,7 @@ class ChatClient(Frame):
 def main():  
   root = tk.Tk()
   app = ChatClient(root)
+#  app.pack(fill="both",expand=True)
   root.mainloop()  
 
 if __name__ == '__main__':
