@@ -21,6 +21,7 @@ from tkinter import StringVar,Entry,Label,Button
 #import tkinter as tk
 import io, binascii,shutil,datetime,time
 import subprocess, sys , os 
+import codecs
 #import subprocess, sys , os ,MySQLdb ,mysql.connector
 #import tkinter.messagebox
 #import win32api
@@ -40,6 +41,26 @@ from picturekri import kriengten
 
 pdfmetrics.registerFont(TTFont('THSarabunNew','THSarabunNew.ttf'))
 db_config = read_db_config()
+
+
+def thai2unicode(data):
+    result = ''
+    result = bytes(data).decode('tis-620')
+    return result.strip();
+
+#def thai2unicode(data):
+#	result = ''
+#	if isinstance(data, list):
+#		for d in data:
+#			result += str(chr(d),"tis-620")
+#	else :
+#		result = data.decode("tis-620").encode("utf-8")
+#	return result.strip()
+
+def getData(cmd, req = [0x00, 0xc0, 0x00, 0x00]):
+    data, sw1, sw2 = connection.transmit(cmd)
+    data, sw1, sw2 = connection.transmit(req + [cmd[-1]])
+    return [data, sw1, sw2];
 
 
 def convert(content):
@@ -66,12 +87,17 @@ def convert(content):
         #print result
     return result
 
-
 def readcard():
     initkri()
 # Reset
     SELECT = [0x00, 0xA4, 0x04, 0x00, 0x08, 0xA0, 0x00, 0x00, 0x00, 0x54, 0x48, 0x00, 0x01]
+# Check card
+    SELECT1 = [0x00, 0xA4, 0x04, 0x00, 0x08]
+    THAI_CARD = [0xA0, 0x00, 0x00, 0x00, 0x54, 0x48, 0x00, 0x01]
+
+
 # CID
+    CMD_CID = [0x80, 0xb0, 0x00, 0x04, 0x02, 0x00, 0x0d]
     COMMAND1 = [0x80, 0xb0, 0x00, 0x04, 0x02, 0x00, 0x0d]
     COMMAND2 = [0x00, 0xc0, 0x00, 0x00, 0x0d]
 # Fullname Thai + Eng + BirthDate + Sex
@@ -83,15 +109,49 @@ def readcard():
 # issue/expire
     COMMAND7 = [0x80, 0xb0, 0x01, 0x67, 0x02, 0x00, 0x12]
     COMMAND8 = [0x00, 0xc0, 0x00, 0x00, 0x12]
+# TH Fullname
+    CMD_THFULLNAME = [0x80, 0xb0, 0x00, 0x11, 0x02, 0x00, 0x64]
+# EN Fullname
+    CMD_ENFULLNAME = [0x80, 0xb0, 0x00, 0x75, 0x02, 0x00, 0x64]
+# Date of birth
+    CMD_BIRTH = [0x80, 0xb0, 0x00, 0xD9, 0x02, 0x00, 0x08]
+# Gender
+    CMD_GENDER = [0x80, 0xb0, 0x00, 0xE1, 0x02, 0x00, 0x01]
+# Card Issuer
+    CMD_ISSUER = [0x80, 0xb0, 0x00, 0xF6, 0x02, 0x00, 0x64]
+# Issue Date
+    CMD_ISSUE = [0x80, 0xb0, 0x01, 0x67, 0x02, 0x00, 0x08]
+# Expire Date
+    CMD_EXPIRE = [0x80, 0xb0, 0x01, 0x6F, 0x02, 0x00, 0x08]
+# Address
+    CMD_ADDRESS = [0x80, 0xb0, 0x15, 0x79, 0x02, 0x00, 0x64]
+
+
 # get all the available readers
+    readerList = readers()
     r = readers()
     print("Available readers:", r)
-    reader = r[0]
+    for readerIndex,readerItem in enumerate(readerList):
+        print(readerIndex, readerItem)
+#    Select reader
+    readerSelectIndex = 0 #int(input("Select reader[0]: ") or "0")
+    reader = readerList[readerSelectIndex]
+
+#    reader = r[0]
     print("Using:", reader)
     connection = reader.createConnection()
     connection.connect()
-# Reset
-    data, sw1, sw2 = connection.transmit(SELECT)
+    atr = connection.getATR()
+    print ("ATR: " + toHexString(atr))
+    if (atr[0] == 0x3B & atr[1] == 0x67):
+        req = [0x00, 0xc0, 0x00, 0x01]
+    else :
+        req = [0x00, 0xc0, 0x00, 0x00]
+
+
+# Reset , check card
+    data, sw1, sw2 = connection.transmit(SELECT1 + THAI_CARD)
+#    data, sw1, sw2 = connection.transmit(SELECT)
     print(data)
     print("Select Applet: %02X %02X" % (sw1, sw2))
     data, sw1, sw2 = connection.transmit(COMMAND1)
@@ -99,18 +159,17 @@ def readcard():
     print("Command1: %02X %02X" % (sw1, sw2))
 #print "Command1 kri : %02X " % (sw1)
 # CID
+#    data = getData(CMD_CID, req)
     data, sw1, sw2 = connection.transmit(COMMAND2)
+    cid = thai2unicode(data[0])
+    print ("CID: " + cid)
     print(data)
     print("testkri %s" % (data))
     kid = []
     for d in data:
         kid.append(chr(d))
         print(bytes(chr(d),'UTF-8'))
-#        print(bytes(chr(d),'UTF-8'), end=' ')
-#            s.send(bytes(msg, 'UTF-8'))
-#        print(str(chr(d),"tis-620"), end=' ')
     print()
-#print kid
     kid.append(",")
     print("Command2: %02X %02X" % (sw1, sw2))
 # Fullname Thai + Eng + BirthDate + Sex
@@ -118,12 +177,20 @@ def readcard():
     print(data)
     print("Command3: %02X %02X" % (sw1, sw2))
     data, sw1, sw2 = connection.transmit(COMMAND4)
+    kridata = thai2unicode(data[0])
+
     print(data)
+    print('kridata:')
+    print(kridata)
     for d in data:
-        kid.append(chr(d))
-#        print(str(chr(d),"tis-620"), end=' ')
-#        print(str(chr(d).encode("utf-8").decode("tis-620")), end=' ')
-#        print(str(chr(d).encode("tis-620").decode("tis-620")), end=' ')
+#print(str(chr(d)).encode('tis-620','ignore').decode('tis-620','ignore'),end=' ')
+        if six.PY2:
+            kid.append(chr(d))
+            print(thai2unicode(chr(d)),end='')
+        else:
+            ktext = chr(d).encode('cp1252').decode('tis-620')
+            kid.append(chr(d).encode('cp1252').decode('tis-620'))
+            print( ktext , end= ' ')
     print()
     kid.append(",")
     print("Command4: %02X %02X" % (sw1, sw2))
@@ -134,8 +201,13 @@ def readcard():
     data, sw1, sw2 = connection.transmit(COMMAND6)
     print(data)
     for d in data:
-        kid.append(chr(d))
-#        print(str(chr(d),"tis-620"), end=' ')
+        if six.PY2:
+            kid.append(chr(d))
+            print(thai2unicode(chr(d)),end='')
+        else:
+            ktext = chr(d).encode('cp1252').decode('tis-620')
+            kid.append(chr(d).encode('cp1252').decode('tis-620'))
+            print( ktext , end= ' ')
     print()
     kid.append(",")
     print("Command6: %02X %02X" % (sw1, sw2))
@@ -146,8 +218,13 @@ def readcard():
     data, sw1, sw2 = connection.transmit(COMMAND8)
     print(data)
     for d in data:
-        kid.append(chr(d))
-#        print(str(chr(d),"tis-620"), end=' ')
+        if six.PY2:
+            kid.append(chr(d))
+            print(thai2unicode(chr(d)),end='')
+        else:
+            ktext = chr(d).encode('cp1252').decode('tis-620')
+            kid.append(chr(d).encode('cp1252').decode('tis-620'))
+            print( ktext , end= ' ')
     print()
     kid.append(",")
     f1 = open('./kriid.txt','w+')
@@ -167,20 +244,15 @@ def readcard():
 #    print (name1)
 #    name1 = str(name,"tis-620")
 #    tumbon1 = thaitumbon.replace('ตำบล',"")
-
     surname = words[3].split()[0]
-
-#    surname1 = convert(surname)
-#    print (surname1)
-#    surname1 = str(surname,"tis-620")
     if six.PY2:
         pre1 = pre.decode("tis-620").encode('UTF-8')
         name1 = name.decode("tis-620").encode('utf-8')
         surname1 = surname.decode("tis-620").encode('UTF-8')
     else:
-        pre1 = str(pre,"tis-620")
-        name1 = str(name,"tis-620")
-        surname1 = str(surname,"tis-620")
+        pre1 = pre
+        name1=name
+        surname1=surname
     print (pre)
     print (pre1)
     print (name1)
@@ -198,33 +270,33 @@ def readcard():
             kripre='3'    
     words = list[2].split("#")
     address = words[0]+words[1]
-    address1 = address.decode("tis-620").encode('UTF-8')
+    if six.PY2:
+        address1 = address.decode("tis-620").encode('UTF-8')
+    else:
+        address1 = address
     tumbon0 = words[5]
-#    thaitumbon = convert(tumbon0)
-#    thaitumbon = str(tumbon0,"tis-620")
-    thaitumbon = tumbon0.decode("tis-620").encode('UTF-8')
+    if six.PY2:
+        thaitumbon = tumbon0.decode("tis-620").encode('UTF-8')
+    else:
+        thaitumbon = tumbon0
     print (thaitumbon)
     tumbon1 = thaitumbon.replace('ตำบล',"")
     print (tumbon1)
-#    tumbon = tumbon1.encode('tis-620')
     tumbon = tumbon1
     amphur0 = words[6]
-#    thaiamphur = convert(amphur0)
-#    thaiamphur = str(amphur0,"tis-620")
-#    thaiamphur = amphur0.decode("tis-620")
-    thaiamphur = amphur0.decode("tis-620").encode('UTF-8')
+    if six.PY2:
+        thaiamphur = amphur0.decode("tis-620").encode('UTF-8')
+    else:
+        thaiamphur = amphur0        
     amphur1 = thaiamphur.replace('อำเภอ',"")
-#    amphur = amphur1.encode('tis-620')
     amphur = amphur1
     province0 = words[7].strip()
     print(province0)
- #   print(str(province0,"tis-620"))
-#    thaiprovince = convert(province0)
-#    thaiprovince = str(province0,"tis-620")
-#    thaiprovince = province0.decode("tis-620")
-    thaiprovince = province0.decode("tis-620").encode('UTF-8')
+    if six.PY2:
+        thaiprovince = province0.decode("tis-620").encode('UTF-8')
+    else:
+        thaiprovince = province0
     province1 = thaiprovince.replace('จังหวัด',"")
-#    province = province1.encode('tis-620')
     province = province1
     expire = list[3]
     f1.close
@@ -247,7 +319,10 @@ def readcard():
         print("HN")
         cardname = pre+name+" "+surname
 #        cardname2 = str(cardname,'tis-620')
-        cardname2 = cardname.decode('tis-620')
+        if six.PY2:
+            cardname2 = cardname.decode('tis-620')
+        else:
+            cardname2 = cardname
         Label(root,text=cardname2).grid(row=1,column=8) #Creating label
         abirth = int(birth)
         abirth2 = abirth%100
@@ -283,14 +358,7 @@ def readcard():
 #	data, sw1, sw2 = connection.transmit(req + [cmd[-1]])
 #	data, sw1, sw2 = self.connection.transmit(req + [cmd[-1]])
 #	return [data, sw1, sw2]
-def thai2unicode(data):
-	result = ''
-	if isinstance(data, list):
-		for d in data:
-			result += str(chr(d),"tis-620")
-	else :
-		result = data.decode("tis-620").encode("utf-8")
-	return result.strip()
+
 
 def photoid13():
 # Reset
@@ -332,30 +400,56 @@ def photoid13():
 # get all the available readers
     r = readers()
     print("Available readers:", r)
+
+#    for readerIndex,readerItem in enumerate(readerList):
+    for readerIndex,readerItem in enumerate(r):
+        print(readerIndex, readerItem)
+    readerSelectIndex = 0 #int(input("Select reader[0]: ") or "0")
+#    reader = readerList[readerSelectIndex]
+#    reader = r[readerSelectIndex]
+
+
     reader = r[0]
     print("Using:", reader)
     connection = reader.createConnection()
     connection.connect()
-# Reset
+    atr = connection.getATR()
+    print ("ATR: " + toHexString(atr))
+    if (atr[0] == 0x3B & atr[1] == 0x67):
+       req = [0x00, 0xc0, 0x00, 0x01]
+    else :
+       req = [0x00, 0xc0, 0x00, 0x00]
+# Check card
+#    data, sw1, sw2 = connection.transmit(SELECT + THAI_CARD)
+#    print ("Select Applet: %02X %02X" % (sw1, sw2))
+#    print(date)
+# Reset , check card
+
     data, sw1, sw2 = connection.transmit(SELECT)
     print(data)
     print("Select Applet: %02X %02X" % (sw1, sw2))
     data, sw1, sw2 = connection.transmit(COMMAND1)
     print(data)
     print("Command1: %02X %02X" % (sw1, sw2))
+
 # CID
+#    data = getData(CMD_CID, req)
+#    data1 = getData(CMD_CID, req)
+#    cid = thai2unicode(data1[0])
+
     data, sw1, sw2 = connection.transmit(COMMAND2)
     print(data)
     print("testkri %s" % (data))
     kid = []
-#    kid2= []
     for d in data:
         kid.append(chr(d))
         print(chr(d), end=' ')
     print()
-#print kid
     kid.append(",")
     print("Command2: %02X %02X" % (sw1, sw2))
+
+#    kid2= []
+#print kid
 # Fullname Thai + Eng + BirthDate + Sex
     data, sw1, sw2 = connection.transmit(COMMAND3)
     print(data)
@@ -364,8 +458,13 @@ def photoid13():
     data, sw1, sw2 = connection.transmit(COMMAND4)
     print(data)
     for d in data:
-        kid.append(chr(d))
-        print(str(chr(d),"tis-620"), end=' ')
+        if six.PY2:
+            kid.append(chr(d))
+            print(thai2unicode(chr(d)),end='')
+        else:
+            ktext = chr(d).encode('cp1252').decode('tis-620')
+            kid.append(chr(d).encode('cp1252').decode('tis-620'))
+            print( ktext , end= ' ')
     print()
     kid.append(",")
     print("Command4: %02X %02X" % (sw1, sw2))
@@ -377,8 +476,13 @@ def photoid13():
     data, sw1, sw2 = connection.transmit(COMMAND6)
     print(data)
     for d in data:
-        kid.append(chr(d))
-        print(str(chr(d),"tis-620"), end=' ')
+        if six.PY2:
+            kid.append(chr(d))
+            print(thai2unicode(chr(d)),end='')
+        else:
+            ktext = chr(d).encode('cp1252').decode('tis-620')
+            kid.append(chr(d).encode('cp1252').decode('tis-620'))
+            print( ktext , end= ' ')
     print()
     kid.append(",")
     print("Command6: %02X %02X" % (sw1, sw2))
@@ -389,8 +493,13 @@ def photoid13():
     data, sw1, sw2 = connection.transmit(COMMAND8)
     print(data)
     for d in data:
-        kid.append(chr(d))
-        print(str(chr(d),"tis-620"), end=' ')
+        if six.PY2:
+            kid.append(chr(d))
+            print(thai2unicode(chr(d)),end='')
+        else:
+            ktext = chr(d).encode('cp1252').decode('tis-620')
+            kid.append(chr(d).encode('cp1252').decode('tis-620'))
+            print( ktext , end= ' ')
     print()
     kid.append(",")
     f1 = open('./kriid.txt','w+')
@@ -468,7 +577,10 @@ def photoid13():
     expire=list[3]
     kripic =id13+expire+".jpg"
     f = open(kripic, "wb")
-    f.write(dataa1)
+    if six.PY2:
+        f.write(dataa1)
+    else:
+        f.write(dataa1.encode('ISO-8859-1')) # iso-8859-1 use to save impage in python3
     f.flush()
     f.close
     sleep(0.1)
@@ -498,21 +610,51 @@ def photoid13():
         else:
             kripre='3'    
     words = list[2].split("#")
-    address1 = words[0]+words[1]
+    address2 = words[0]+words[1]
+
+    if six.PY2:
+        address1 = address2.decode("tis-620").encode('UTF-8')
+    else:
+        address1 = address2
     tumbon0 = words[5]
+    if six.PY2:
+        thaitumbon = tumbon0.decode("tis-620").encode('UTF-8')
+        tumbon1 = thaitumbon.replace('ตำบล',"")
+#        tumbon = tumbon1.encode('tis-620')
+        tumbon = tumbon1
+    else:
+        thaitumbon = tumbon0
+        tumbon1 = thaitumbon.replace('ตำบล',"")
+        tumbon = tumbon1
+
+#    tumbon0 = words[5]
 #    tumbon = tumbon0[4:30] #  amphur = amphur0[5:30] #  province = province0[7:30]
-    thaitumbon = str(tumbon0,"tis-620")
-    tumbon1 = thaitumbon.replace('ตำบล',"")
-    tumbon = tumbon1.encode('tis-620')
+ #   thaitumbon = str(tumbon0,"tis-620")
     amphur0 = words[6]
-    thaiamphur = str(amphur0,"tis-620")
-    amphur1 = thaiamphur.replace('อำเภอ',"")
-    amphur = amphur1.encode('tis-620')
+    if six.PY2:
+        thaiamphur = amphur0.decode("tis-620").encode('UTF-8')
+        amphur1 = thaiamphur.replace('อำเภอ',"")
+        amphur = amphur1
+    else:
+        thaiamphur = amphur0
+        amphur1 = thaiamphur.replace('อำเภอ',"")
+        amphur = amphur1
+
+
     province0 = words[7].strip()
-    print(str(province0,"tis-620"))
-    thaiprovince = str(province0,"tis-620")
-    province1 = thaiprovince.replace('จังหวัด',"")
-    province = province1.encode('tis-620')
+    if six.PY2:
+        print(province0)
+        thaiprovince = province0.decode("tis-620").encode('UTF-8')
+        print(thaiprovince)
+        province1 = thaiprovince.replace('จังหวัด',"")
+        province = province1
+    else:
+        print(province0)
+        thaiprovince = province0
+        province1 = thaiprovince.replace('จังหวัด',"")
+        province = province1
+
+
     f1.close
     csvfile = '../Dropbox/krifoxone/kriid.csv'
     if os.path.isfile(csvfile):
@@ -528,7 +670,10 @@ def photoid13():
         aa.grid(row=5,column=6)
         print("HN")
         cardname = pre+name+" "+surname
-        cardname2 = str(cardname,'tis-620')
+        if six.PY2:
+            cardname2 = cardname.decode("tis-620").encode('UTF-8')
+        else:
+            cardname2 = cardname
         Label(root,text=cardname2).grid(row=1,column=8) #Creating label
         abirth = int(birth)
         abirth2 = abirth%100
@@ -679,8 +824,8 @@ def copyandfindid13():
                 cursor.close ()
                 conn.close ()
                 if acount == 0:
-                    print("ไม่พบid13 นี้")
-                    sv1 = StringVar(root,value="ไม่พบid13 นี้")
+                    print("ไม่พบid:"+kid13+" นี้")
+                    sv1 = StringVar(root,value="ไม่พบid:"+kid13+" นี้")
                     aa=Entry(root,textvariable=sv1)           #creating entry box
                     aa.grid(row=5,column=6)
                 if acount >= 2:
@@ -947,6 +1092,7 @@ def searchname() :
     try:
         print(db_config)
         print('Connecting to MySQL database...')
+#        conn = MySQLConnection(**db_config)
         conn = MySQLConnection(**db_config)
 #conn = MySQLdb.connect(charset='utf8', init_command='SET NAMES UTF8')
         print('Connection Successful!!!')
@@ -1048,7 +1194,7 @@ def hex2bin(self,str):
 
 
 def initkri():
-    sv = StringVar(root,value='kriengsak')
+    sv = StringVar(root,value='kriengsak') # sv =ตัวบอก สถานะ
     a=Entry(root,textvariable=sv)
     a.grid(row=5,column=1)
     Label(root,text="    id13 จากcard    ").grid(row=5,column=4) #Creating label
@@ -1080,7 +1226,11 @@ def imgkri(aaa):
     else:
         bbb = aaa 
 #    img =Image.open(bbb).convert('LA')
-    img =Image.open(bbb)
+    if six.PY2:
+        img =Image.open(bbb)
+    else:
+        img =Image.open(bbb)
+
     img.show()
 
 def imgkri2():
@@ -1103,10 +1253,10 @@ root.resizable(width=True,height=True)
 #panel = tk.Label(root, image = img)
 #panel.pack(side = "bottom", fill = "both", expand = "yes")
 
-sv = StringVar(root,value='kriengsak')
+sv = StringVar(root,value='kriengsak') # show status
 a=Entry(root,textvariable=sv)
 a.grid(row=5,column=1)
-sv1 = StringVar(root,value='HN')
+sv1 = StringVar(root,value='HN') # ตอบผล การค้น id13 จากdatabase
 aa=Entry(root,textvariable=sv1)
 aa.grid(row=5,column=6)
 sv2 = StringVar(root,value='ใส่ id13')
