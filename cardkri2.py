@@ -30,7 +30,7 @@ from time import sleep
 #from datetime import date,time,timedelta
 from PIL import ImageTk, Image ,ImageDraw , ImageFont,ImageFile
 from smartcard.System import readers
-from reportlab.pdfgen import canvas
+from reportlab.pdfgen import canvas  #sudo apt-get install -y python3-reportlab
 from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
 from tkinter.filedialog import askopenfilename
